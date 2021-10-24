@@ -118,9 +118,9 @@ Subsystem	sftp	/usr/lib/ssh/sftp-server
 #	ForceCommand cvs server
 
 # Algorithms
-Ciphers chacha20-poly1305@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com
-KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256
-MACs umac-128@openssh.com,umac-128-etm@openssh.com,hmac-sha2-256,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-512-etm@openssh.com
+Ciphers chacha20-poly1305@openssh.com
+KexAlgorithms curve25519-sha256@libssh.org
+MACs hmac-sha2-512-etm@openssh.com
 HostKeyAlgorithms=ssh-ed25519
 EOF
 fi
