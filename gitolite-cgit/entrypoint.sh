@@ -329,8 +329,6 @@ EOF
     error_log off;
 
     # Aditional Security Headers
-    # ref: https://developer.mozilla.org/en-US/docs/Security/HTTP_Strict_Transport_Security
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
 
     # ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
     add_header X-Frame-Options DENY always;
