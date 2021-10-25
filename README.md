@@ -150,7 +150,7 @@ volumes:
 ## Build docker image
 
 ```console
-$ git clone https://git.sr.ht/~heckyel/gitolite-cgit-docker
+$ git clone https://hgit.conocimientoslibres.ga/containers/gitolite-cgit-docker.git
 ```
 
 ```console
