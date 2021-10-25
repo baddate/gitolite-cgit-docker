@@ -318,11 +318,28 @@ EOF
   #  /usr/lib/cgit/filters/syntax-highlighting.sh
 
   # Nginx configuration
-  rm -v /etc/nginx/http.d/default.conf || true
+  rm -f /etc/nginx/http.d/default.conf || true
   cat > /etc/nginx/http.d/cgit.conf <<- EOF
   server {
     listen 80 default_server;
     server_name localhost;
+
+    # Logs
+    access_log off;
+    error_log off;
+
+    # Aditional Security Headers
+    # ref: https://developer.mozilla.org/en-US/docs/Security/HTTP_Strict_Transport_Security
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
+
+    # ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+    add_header X-Frame-Options DENY always;
+
+    # ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+    add_header X-Content-Type-Options nosniff always;
+
+    # ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
+    add_header X-Xss-Protection "1; mode=block" always;
 
     root /usr/share/webapps/cgit;
     try_files \$uri @cgit;
@@ -355,6 +372,26 @@ EOF
                       font/opentype
                       application/vnd.ms-fontobject
                       image/svg+xml;
+    gzip_min_length 1000; # default is 20 bytes
+    gzip_buffers 16 8k;
+    gzip_comp_level 2; # default is 1
+
+    client_body_timeout       30s; # default is 60
+    client_header_timeout     10s; # default is 60
+    send_timeout              10s; # default is 60
+    keepalive_timeout         10s; # default is 75
+    resolver_timeout          10s; # default is 30
+    reset_timedout_connection on;
+    proxy_ignore_client_abort on;
+
+    tcp_nopush on; # send headers in one piece
+    tcp_nodelay on; # don't buffer data sent, good for small data bursts in real time
+
+    # Enabling the sendfile directive eliminates the step of copying the data into the buffer
+    # and enables direct copying data from one file descriptor to another.
+    sendfile on;
+    sendfile_max_chunk 1M; # prevent one fast connection from entirely occupying the worker process. should be > 800k.
+    aio threads;
   }
 EOF
 
