@@ -328,17 +328,6 @@ EOF
     access_log off;
     error_log off;
 
-    # Aditional Security Headers
-
-    # ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
-    add_header X-Frame-Options DENY always;
-
-    # ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
-    add_header X-Content-Type-Options nosniff always;
-
-    # ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
-    add_header X-Xss-Protection "1; mode=block" always;
-
     root /usr/share/webapps/cgit;
     try_files \$uri @cgit;
 
