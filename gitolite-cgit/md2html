@@ -7,7 +7,7 @@ from markdown.extensions.toc import TocExtension
 sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stdout.write('''
-<style>
+<style nonce="f4eb1bb">
 .markdown-body {
     font-size: 14px;
     line-height: 1.6;
