@@ -49,7 +49,7 @@ except TypeError:
 
 # highlight! :-)
 # printout pygments' css definitions as well
-sys.stdout.write('<style>')
+sys.stdout.write('<style nonce="8909ab9">')
 sys.stdout.write(formatter.get_style_defs('.highlight'))
 sys.stdout.write('</style>')
 sys.stdout.write(highlight(data, lexer, formatter, outfile=None))
