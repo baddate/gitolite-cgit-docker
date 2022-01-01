@@ -2,6 +2,7 @@
     --background:           #212529;
     --bg-strong:            #131618;
     --p-color:              #131618;
+    --bd-color:             #0062cc;
     --brand-color:          #0062cc;
     --brand-lg-color:       #3395ff;
     --add-color:            #00e676;
@@ -96,7 +97,7 @@ font-size: 90%;
 
 table#header td.sub {
 color: var(--text);
-border-top: solid 1px var(--background);
+border-top: solid 1px var(--bd-color);
 padding-left: 10px;
 }
 
