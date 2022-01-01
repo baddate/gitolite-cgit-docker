@@ -560,6 +560,13 @@ color: var(--text);
 margin: 0em 0.5em;
 }
 
+ul.pager {
+list-style-type: none;
+text-align: center;
+margin: 1em 0em 0em 0em;
+padding: 0;
+}
+
 span.age-mins {
 font-weight: bold;
 color: #0c0;
