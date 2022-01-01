@@ -296,17 +296,17 @@ scan-path=/var/lib/git/repositories
 EOF
 
   # Append clone-prefix
-  if [ ! -z "$CGIT_CLONE_PREFIX" ]; then
+  if [ -n "$CGIT_CLONE_PREFIX" ]; then
       echo "# Specify some default clone prefixes" >> /etc/cgitrc
       echo "clone-prefix=$CGIT_CLONE_PREFIX" >> /etc/cgitrc
   fi
 
-  if [ ! -z "$CGIT_ROOT_TITLE" ]; then
+  if [ -n "$CGIT_ROOT_TITLE" ]; then
       echo "# Set the title and heading of the repository index page" >> /etc/cgitrc
       echo "root-title=$CGIT_ROOT_TITLE" >> /etc/cgitrc
   fi
 
-  if [ ! -z "$CGIT_DESC" ]; then
+  if [ -n "$CGIT_DESC" ]; then
       echo "# Set description repository" >> /etc/cgitrc
       echo "root-desc=$CGIT_DESC" >> /etc/cgitrc
   fi
