@@ -567,6 +567,11 @@ margin: 1em 0em 0em 0em;
 padding: 0;
 }
 
+ul.pager li {
+display: inline-block;
+margin: 0.25em 0.5em;
+}
+
 span.age-mins {
 font-weight: bold;
 color: #0c0;
