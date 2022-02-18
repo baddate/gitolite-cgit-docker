@@ -20,9 +20,6 @@ RUN set -xe \
   && rm -rf /var/cache/apk/* \
   && rm -rf /tmp/*
 
-# Volume to store all ssh host key
-VOLUME [ "/etc/ssh" ]
-
 # Volume to store Gitolite data, used for Gitolite setup
 VOLUME [ "/var/lib/git" ]
 
