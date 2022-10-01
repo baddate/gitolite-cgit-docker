@@ -46,6 +46,7 @@ jobs:
           no-cache: true
           tags: |
             ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
 
       - name: Run Trivy scan
         uses: aquasecurity/trivy-action@0.28.0
@@ -74,3 +75,4 @@ jobs:
           no-cache: false
           tags: |
             ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
