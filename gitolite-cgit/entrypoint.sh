@@ -393,6 +393,12 @@ enable-index-links=1
 # Show owner
 enable-index-owner=1
 
+# Enable blame page and create links to it from tree page
+enable-blame=1
+
+# Sort branches by date
+branch-sort=age
+
 # Enable ASCII art commit history graph on the log pages
 enable-commit-graph=1
 
