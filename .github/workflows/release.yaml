@@ -29,6 +29,35 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build Docker image
+        id: build-image
+        uses: docker/build-push-action@v6
+        with:
+          context: gitolite-cgit
+          file: gitolite-cgit/Dockerfile
+          platforms: |
+            linux/amd64
+            linux/arm/v6
+            linux/arm/v7
+            linux/arm64
+            linux/386
+            linux/ppc64le
+          push: false
+          no-cache: true
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+
+      - name: Run Trivy scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: "ghcr.io/${{ github.repository }}:latest"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os"
+          severity: "CRITICAL,HIGH"
+          cache: "false"
+
       - name: Push Docker image
         uses: docker/build-push-action@v6
         with:
@@ -45,13 +74,3 @@ jobs:
           no-cache: false
           tags: |
             ghcr.io/${{ github.repository }}:latest
-
-      - name: Run Trivy scan
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: "ghcr.io/${{ github.repository }}:latest"
-          format: "table"
-          exit-code: "1"
-          ignore-unfixed: true
-          vuln-type: "os"
-          severity: "CRITICAL,HIGH"
