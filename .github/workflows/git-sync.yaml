@@ -1,0 +1,40 @@
+name: git-sync-with-mirror
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  git-sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: git-sync
+        env:
+          git_sync_source_repo: git@git.fridu.us:heckyel/gitolite-cgit-docker.git
+          git_sync_destination_repo: ssh://git@c.fridu.us/containers/gitolite-cgit-docker.git
+        if: env.git_sync_source_repo && env.git_sync_destination_repo
+        uses: wei/git-sync@v3
+        with:
+          source_repo: git@git.fridu.us:heckyel/gitolite-cgit-docker.git
+          source_branch: "main"
+          destination_repo: ssh://git@c.fridu.us/containers/gitolite-cgit-docker.git
+          destination_branch: "main"
+          source_ssh_private_key: ${{ secrets.GIT_SYNC_SOURCE_SSH_PRIVATE_KEY }}
+          destination_ssh_private_key:  ${{ secrets.GIT_SYNC_DESTINATION_SSH_PRIVATE_KEY }}
+
+      - name: git-sync-sourcehut
+        env:
+          git_sync_source_repo: git@git.fridu.us:heckyel/gitolite-cgit-docker.git
+          git_sync_destination_repo: git@git.sr.ht:~heckyel/gitolite-cgit-docker
+        if: env.git_sync_source_repo && env.git_sync_destination_repo
+        uses: wei/git-sync@v3
+        with:
+          source_repo: git@git.fridu.us:heckyel/gitolite-cgit-docker.git
+          source_branch: "main"
+          destination_repo: git@git.sr.ht:~heckyel/gitolite-cgit-docker
+          destination_branch: "main"
+          source_ssh_private_key: ${{ secrets.GIT_SYNC_SOURCE_SSH_PRIVATE_KEY }}
+          destination_ssh_private_key:  ${{ secrets.GIT_SYNC_DESTINATION_SSH_PRIVATE_KEY }}
+        continue-on-error: true
