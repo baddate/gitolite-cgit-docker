@@ -53,7 +53,7 @@ Supported clone method:
 
 - HTTP: `enable-http-clone=1` by default, which let cgit act as a dumb HTTP enpoint for git clones.
   You can disable that by edit /etc/cgitrc. I may consider to add more feature, so you can set config
-  from `docker run` or `docker-compose.yml`. `git push` is not supported via HTTP at this moment.
+  from `docker run` or `docker-compose.yml`. `git push` is not supported via HTTP.
 
         git clone http://<server_ip>/<repo_name>
 
@@ -73,7 +73,7 @@ $ docker pull rusian/gitolite-cgit
 
 2. Create environment file
 
-In this repo, I create `gitolite` admin with the host public key and username.
+I create `gitolite` admin with the host public key and username.
 In case, you are running this on server, you need to enter
 **SSH_KEY** and **SSH_KEY_NAME** into `config.env`:
 
