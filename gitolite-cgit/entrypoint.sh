@@ -392,6 +392,9 @@ spawn-fcgi -s /run/fcgiwrap/fcgiwrap.socket -f /usr/bin/fcgiwrap
 chmod 660 /run/fcgiwrap/fcgiwrap.socket
 
 # fix permissions gitolite
+chown git:git /var/lib/git
+chown git:git -R /var/lib/git
+chmod 700 /var/lib/git
 chown git:git /var/lib/git/.gitolite.rc
 chmod 640 /var/lib/git/.gitolite.rc
 
