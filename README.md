@@ -37,7 +37,7 @@ $ docker run -e SSH_KEY="$(cat ~/.ssh/id_ed25519.pub)" -e SSH_KEY_NAME="$(whoami
 
 ### Volume
 
-- `/var/lib/git`: gitolite home folder, store all repositories, `gitolite-admin` repo, ...
+- `/var/lib/git`: gitolite home folder, store all repositories like `gitolite-admin`
 - `/etc/ssh/`: store all generated SSH server key
 
 ### How to interact with git server
@@ -45,9 +45,19 @@ $ docker run -e SSH_KEY="$(cat ~/.ssh/id_ed25519.pub)" -e SSH_KEY_NAME="$(whoami
 Cgit webpage: `http://<server_ip>/`
 
 Supported clone method:
-- SSH: authentication with gitolite configuration inside `gitolite-admin`. For more information, pls refer to [basic administration](https://gitolite.com/gitolite/basic-admin.html). Syntax: `git clone ssh://git@<server_ip>/<repo_name>`
-- HTTP: `enable-http-clone=1` by default, which let cgit act as a dumb HTTP enpoint for git clones. You can disable that by edit /etc/cgitrc. I may consider to add more feature, so you can set config from `docker run` or `docker-compose.yml`. `git push` is not supported via HTTP at this moment. Syntax: `git clone http://<server_ip>/<repo_name>`
-- GIT: `git daemon` is enabled by default with `upload-pack` service (this serves git fetch-pack and git ls-remote clients), allowing anonymous fetch, clone. Syntax: `git clone git://<server_ip>/<repo_path>`
+
+- SSH: authentication with gitolite configuration inside `gitolite-admin`.
+  For more information, please refer to [basic administration](https://gitolite.com/gitolite/basic-admin.html).
+  Syntax: `git clone ssh://git@<server_ip>/<repo_name>`
+
+- HTTP: `enable-http-clone=1` by default, which let cgit act as a dumb HTTP enpoint for git clones.
+  You can disable that by edit /etc/cgitrc. I may consider to add more feature, so you can set config
+  from `docker run` or `docker-compose.yml`. `git push` is not supported via HTTP at this moment.
+  Syntax: `git clone http://<server_ip>/<repo_name>`
+
+- GIT: `git daemon` is enabled by default with `upload-pack` service
+  (this serves git fetch-pack and git ls-remote clients), allowing anonymous
+  fetch, clone. Syntax: `git clone git://<server_ip>/<repo_path>`
 
 ## Docker-compose
 
@@ -59,7 +69,9 @@ $ docker pull rusian/gitolite-cgit
 
 2. Create environment file
 
-In this repo, I create `gitolite` admin with the host public key and username. In case, you are running this on server, you need to enter SSH_KEY and SSH_KEY_NAME into `config.env`:
+In this repo, I create `gitolite` admin with the host public key and username.
+In case, you are running this on server, you need to enter
+**SSH_KEY** and **SSH_KEY_NAME** into `config.env`:
 
 ```
 #
@@ -77,7 +89,8 @@ CGIT_CLONE_PREFIX=http://<YOUR-DOMAIN> ssh://git@<YOUR-DOMAIN>
 CGIT_SNAPSHOT=tar.gz tar.bz2 tar.xz
 ```
 
-For convience, I create a script for user who use the public key and name from the host running Docker:
+For convience, I create a `bootstrap.sh` script for user who use public
+key and name from the host running Docker:
 
 ```bash
 # change ssh_key, ssh_key_name to reflect your current setup
@@ -88,6 +101,12 @@ sed -i.bak \
     -e "s#SSH_KEY=.*#SSH_KEY=${SSH_KEY}#g" \
     -e "s#SSH_KEY_NAME=.*#SSH_KEY_NAME=${SSH_KEY_NAME}#g" \
     "$(dirname "$0")/config.env"
+```
+
+Generate public key and private key:
+
+```console
+sh bootstrap.sh
 ```
 
 3. Create `docker-compose.yml`:
@@ -150,7 +169,7 @@ volumes:
 ## Build docker image
 
 ```console
-$ git clone https://hgit.conocimientoslibres.ga/containers/gitolite-cgit-docker.git
+$ git clone https://c.hgit.ga/containers/gitolite-cgit-docker.git
 ```
 
 ```console
