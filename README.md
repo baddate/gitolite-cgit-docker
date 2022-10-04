@@ -48,16 +48,20 @@ Supported clone method:
 
 - SSH: authentication with gitolite configuration inside `gitolite-admin`.
   For more information, please refer to [basic administration](https://gitolite.com/gitolite/basic-admin.html).
+
   Syntax: `git clone ssh://git@<server_ip>/<repo_name>`
 
 - HTTP: `enable-http-clone=1` by default, which let cgit act as a dumb HTTP enpoint for git clones.
   You can disable that by edit /etc/cgitrc. I may consider to add more feature, so you can set config
   from `docker run` or `docker-compose.yml`. `git push` is not supported via HTTP at this moment.
+
   Syntax: `git clone http://<server_ip>/<repo_name>`
 
 - GIT: `git daemon` is enabled by default with `upload-pack` service
   (this serves git fetch-pack and git ls-remote clients), allowing anonymous
-  fetch, clone. Syntax: `git clone git://<server_ip>/<repo_path>`
+  fetch, clone.
+
+  Syntax: `git clone git://<server_ip>/<repo_path>`
 
 ## Docker-compose
 
