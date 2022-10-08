@@ -325,8 +325,8 @@ EOF
     server_name localhost;
 
     # Logs
-    access_log off;
-    error_log off;
+    access_log /dev/null;
+    error_log /dev/null;
 
     root /usr/share/webapps/cgit;
     try_files \$uri @cgit;
