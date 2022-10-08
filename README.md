@@ -124,6 +124,7 @@ services:
     container_name: gitolite-cgit
     env_file: config.env
     volumes:
+      - git:/etc/ssh
       - git:/var/lib/git/
     ports:
       - 22:22
@@ -159,6 +160,7 @@ services:
     container_name: gitolite-cgit
     env_file: config.env
     volumes:
+      - git:/etc/ssh
       - git:/var/lib/git/
       - ./cgitrc:/etc/cgitrc
     ports:
