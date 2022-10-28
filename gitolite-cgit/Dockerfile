@@ -3,6 +3,8 @@ LABEL MAINTAINER="heckyel@riseup.net"
 
 # Install needed packages
 RUN set -xe \
+  && apk update \
+  && apk upgrade \
   && apk add --no-cache --purge -uU \
     # Install gitolite
     gitolite git openssh \
