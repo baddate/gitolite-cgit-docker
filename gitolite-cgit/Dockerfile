@@ -53,8 +53,8 @@ RUN echo "=== Starting compilation ===" && \
          all && \
     echo "=== Compilation complete ==="
 
-RUN ls && \
-    echo "Print dir" && \
+RUN ls -la && \
+    echo "=== Print dir done ===" && \
     pwd
 
 # Verify compiled files exist
@@ -98,8 +98,8 @@ RUN set -xe && \
 
 # Copy compiled binaries and static assets
 COPY --from=cgit_builder /usr/src/cgit/cgit.cgi /usr/bin/cgit.cgi
-COPY --from=cgit_builder /usr/src/cgit/cgit.css /var/www/localhost/htdocs/cgit/cgit.css
-COPY --from=cgit_builder /usr/src/cgit/cgit.png /var/www/localhost/htdocs/cgit/cgit.png
+COPY --from=cgit_builder /usr/src/cgit/cgit.css /var/www/htdocs/cgit/cgit.css
+COPY --from=cgit_builder /usr/src/cgit/cgit.png /var/www/htdocs/cgit/cgit.png
 
 # Copy user-supplied scripts
 COPY cgit.css /var/www/localhost/htdocs/cgit/cgit.css
