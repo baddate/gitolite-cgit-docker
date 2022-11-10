@@ -22,24 +22,48 @@ RUN apk add --no-cache \
 WORKDIR /usr/src
 
 # Clone cgit repository (latest source code)
-RUN git clone https://git.zx2c4.com/cgit.git
+RUN git clone --recursive https://git.zx2c4.com/cgit.git && \
+    echo "Git clone successful"
 
 WORKDIR /usr/src/cgit
 
+# Verify git submodule status
+RUN ls -la && \
+    echo "=== Checking submodule status ===" && \
+    git submodule status && \
+    echo "=== Checking for git directory ===" && \
+    ls -la git/ 2>/dev/null || echo "No git directory found, trying submodule update..."
+
 # Initialize and update git submodules (as recommended in README)
 RUN git submodule init && \
-    git submodule update
+    git submodule update && \
+    echo "=== Submodule update complete ===" && \
+    ls -la git/ && \
+    echo "=== Git directory contents ==="
 
 # Compile cgit with build options optimized for Alpine
-# Following README guidance while maintaining Alpine compatibility
-RUN make NO_ICONV=YesPlease \
+# Add verbose output and error checking
+RUN echo "=== Starting compilation ===" && \
+    make NO_ICONV=YesPlease \
          NO_GETTEXT=YesPlease \
          NO_TCLTK=YesPlease \
          NO_SVN_TESTS=YesPlease \
          NO_REGEX=NeedsStartEnd \
          LUA_PKGCONFIG=lua5.3 \
-         prefix=/usr \
-         all
+         all && \
+    echo "=== Compilation complete ==="
+
+RUN ls && \
+    echo "Print dir" && \
+    pwd
+
+# Verify compiled files exist
+RUN ls -la cgit.cgi cgit.css cgit.png 2>/dev/null || \
+    (echo "ERROR: cgit.cgi not found!" && \
+     find . -name "cgit.cgi" -type f 2>/dev/null || \
+     echo "Searching for any cgit files..." && \
+     ls -la | grep cgit) || \
+    echo "Build verification failed"
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
