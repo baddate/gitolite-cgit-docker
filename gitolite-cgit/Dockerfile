@@ -9,27 +9,35 @@ RUN apk add --no-cache \
     build-base git openssl-dev zlib-dev lua5.3-dev asciidoc pkgconfig gettext-dev curl xz
 
 WORKDIR /usr/src
-RUN curl -LO https://git.zx2c4.com/cgit/snapshot/cgit-master.tar.xz && \
-    tar xf cgit-master.tar.xz && \
-    mv cgit-master cgit
+
+# Download cgit latest source (master branch)
+RUN curl -LO https://git.zx2c4.com/cgit/snapshot/cgit-09d24d7cd0b7e85633f2f43808b12871bb209d69.tar.xz && \
+    tar xJf cgit-09d24d7cd0b7e85633f2f43808b12871bb209d69.tar.xz && \
+    mv cgit-09d24d7cd0b7e85633f2f43808b12871bb209d69 cgit
 
 WORKDIR /usr/src/cgit
 
-# Compile cgit
-RUN make
+# Compile cgit with proper build options (from APKBUILD)
+RUN make NO_ICONV=YesPlease \
+         NO_GETTEXT=YesPlease \
+         NO_TCLTK=YesPlease \
+         NO_SVN_TESTS=YesPlease \
+         NO_REGEX=NeedsStartEnd \
+         LUA_PKGCONFIG=lua5.3 \
+         prefix=/usr
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
 # -----------------------------------------------------------------------------
 FROM alpine:3.22
 
-# Install runtime dependencies
+# Install runtime dependencies (including lua5.3 for cgit runtime)
 RUN set -xe && \
     apk upgrade --no-cache && \
     apk add --no-cache \
         git gitolite git-daemon openssh \
         nginx fcgiwrap spawn-fcgi \
-        openssl zlib \
+        openssl zlib lua5.3 \
         python3 py3-markdown py3-pygments \
         lzip xz zstd gzip bzip2 \
         tini && \
