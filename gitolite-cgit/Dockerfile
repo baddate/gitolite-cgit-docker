@@ -1,3 +1,29 @@
+# Build stage for compiling cgit from source
+FROM alpine:3.22.2 AS builder
+LABEL stage=cgit_builder
+
+RUN apk add --no-cache \
+    build-base \
+    git \
+    openssl-dev \
+    zlib-dev \
+    pkgconfig
+
+WORKDIR /usr/src
+RUN git clone https://git.zx2c4.com/cgit
+WORKDIR /usr/src/cgit
+
+RUN cp cgit.conf /etc/cgitrc.example && \
+    echo "CGIT_SCRIPT_NAME = cgit.cgi" > config.mk && \
+    echo "NO_LUA = 1" >> config.mk && \
+    echo "NO_TCL = 1" >> config.mk && \
+    echo "USE_ZLIB = 1" >> config.mk && \
+    echo "USE_LIBRESSL = 1" >> config.mk && \
+    echo "GIT_EXECUTABLE = /usr/bin/git" >> config.mk
+
+RUN make
+
+# Runtime stage - final image
 FROM alpine:3.22.2
 
 # Install runtime packages (no build tools)
@@ -5,8 +31,7 @@ RUN set -xe \
   && apk update \
   && apk upgrade \
   && apk add --no-cache \
-    # cgit
-    git openssl zlib
+    openssl zlib \
     # Install gitolite
     gitolite git openssh \
     # install git-daemon
