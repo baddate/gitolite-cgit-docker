@@ -54,18 +54,6 @@ RUN echo "=== Starting compilation ===" && \
          all && \
     echo "=== Compilation complete ==="
 
-RUN ls -la && \
-    echo "=== Print dir done ===" && \
-    pwd
-
-# Verify compiled files exist
-RUN ls -la cgit.cgi cgit.css cgit.png 2>/dev/null || \
-    (echo "ERROR: cgit.cgi not found!" && \
-     find . -name "cgit.cgi" -type f 2>/dev/null || \
-     echo "Searching for any cgit files..." && \
-     ls -la | grep cgit) || \
-    echo "Build verification failed"
-
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
 # -----------------------------------------------------------------------------
@@ -94,7 +82,7 @@ RUN set -xe && \
         gzip \
         bzip2 \
         tini && \
-    mkdir -p /run/nginx /var/www/htdocs/cgit /usr/lib/cgit/filters/html-converters && \
+    mkdir -p /run/nginx /var/www/htdocs/cgit /usr/lib/cgit/filters && \
     rm -rf /var/cache/apk/* /tmp/*
 
 # Copy compiled binaries and static assets
@@ -118,6 +106,7 @@ RUN chmod 0755 /var/www/htdocs/cgit/cgit.cgi && \
     chmod -R 0755 /usr/lib/cgit/filters/
 
 # Copy user-supplied scripts
+COPY cgit.css /usr/share/webapps/cgit/cgit.css
 COPY md2html /usr/lib/cgit/filters/html-converters/md2html
 COPY syntax-highlighting.py /usr/lib/cgit/filters/html-converters/syntax-highlighting.py
 COPY auto-default-branch.sh /usr/lib/gitolite/triggers/auto-default-branch
