@@ -1,42 +1,73 @@
 # -----------------------------------------------------------------------------
-# Stage 1: Build cgit from source
+# Stage 1: Build cgit from source (following official README with git clone)
 # -----------------------------------------------------------------------------
 FROM alpine:3.22 AS cgit_builder
 LABEL stage=cgit_builder
 
 # Install build tools and development libraries
+# Dependencies based on cgit README: libzip, libcrypto (OpenSSL), libssl (OpenSSL)
 RUN apk add --no-cache \
-    build-base git openssl-dev zlib-dev lua5.3-dev asciidoc pkgconfig gettext-dev curl xz
+    build-base \
+    git \
+    openssl-dev \
+    zlib-dev \
+    libzip-dev \
+    lua5.3-dev \
+    luajit-dev \
+    asciidoc \
+    pkgconfig \
+    gettext-dev \
+    curl
 
 WORKDIR /usr/src
 
-# Download cgit latest source (master branch)
-RUN curl -L https://git.zx2c4.com/cgit/snapshot/cgit-09d24d7cd0b7e85633f2f43808b12871bb209d69.tar.xz && \
-    tar -xJf cgit-09d24d7cd0b7e85633f2f43808b12871bb209d69.tar.xz && \
-    mv cgit-09d24d7cd0b7e85633f2f43808b12871bb209d69 cgit
+# Clone cgit repository (latest source code)
+RUN git clone https://git.zx2c4.com/cgit.git
 
 WORKDIR /usr/src/cgit
 
-# Get git submodule (required for cgit build)
-RUN make get-git
+# Initialize and update git submodules (as recommended in README)
+RUN git submodule init && \
+    git submodule update
 
-# Compile cgit with proper build options (from APKBUILD)
-RUN make
+# Compile cgit with build options optimized for Alpine
+# Following README guidance while maintaining Alpine compatibility
+RUN make NO_ICONV=YesPlease \
+         NO_GETTEXT=YesPlease \
+         NO_TCLTK=YesPlease \
+         NO_SVN_TESTS=YesPlease \
+         NO_REGEX=NeedsStartEnd \
+         LUA_PKGCONFIG=lua5.3 \
+         prefix=/usr \
+         all
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
 # -----------------------------------------------------------------------------
 FROM alpine:3.22
 
-# Install runtime dependencies (including lua5.3 for cgit runtime)
+# Install runtime dependencies
 RUN set -xe && \
     apk upgrade --no-cache && \
     apk add --no-cache \
-        git gitolite git-daemon openssh \
-        nginx fcgiwrap spawn-fcgi \
-        openssl zlib lua5.3 \
-        python3 py3-markdown py3-pygments \
-        lzip xz zstd gzip bzip2 \
+        git \
+        gitolite \
+        git-daemon \
+        openssh \
+        nginx \
+        fcgiwrap \
+        spawn-fcgi \
+        openssl \
+        zlib \
+        lua5.3 \
+        python3 \
+        py3-markdown \
+        py3-pygments \
+        lzip \
+        xz \
+        zstd \
+        gzip \
+        bzip2 \
         tini && \
     mkdir -p /run/nginx /var/www/localhost/htdocs/cgit /usr/lib/cgit/filters/html-converters && \
     rm -rf /var/cache/apk/* /tmp/*
