@@ -15,14 +15,14 @@ WORKDIR /usr/src/cgit
 RUN git submodule init && git submodule update
 
 # Configure build options using variables referenced in README
-RUN echo "NO_LUA = 1" > config.mk && \
-    echo "NO_TCL = 1" >> config.mk && \
-    echo "USE_ZLIB = 1" >> config.mk && \
-    echo "USE_SSL = 1" >> config.mk && \
-    echo "GIT_EXECUTABLE = /usr/bin/git" >> config.mk
+# RUN echo "NO_LUA = 1" > config.mk && \
+#     echo "NO_TCL = 1" >> config.mk && \
+#     echo "USE_ZLIB = 1" >> config.mk && \
+#     echo "USE_SSL = 1" >> config.mk && \
+#     echo "GIT_EXECUTABLE = /usr/bin/git" >> config.mk
 
 # Compile
-RUN make -j$(nproc)
+RUN make
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
