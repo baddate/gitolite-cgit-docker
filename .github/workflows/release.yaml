@@ -13,6 +13,10 @@ jobs:
   release-default:
     runs-on: ubuntu-latest
     steps:
+      - name: Set short SHA
+        id: short_sha
+        run: echo "sha_short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -49,7 +53,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.ref_name }}
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:${{ steps.short_sha.outputs.sha_short }}
 
       - name: Run Trivy scan
         uses: aquasecurity/trivy-action@0.28.0
@@ -79,4 +83,4 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.ref_name }}
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:${{ steps.short_sha.outputs.sha_short }}
