@@ -11,20 +11,17 @@ RUN apk add --no-cache \
 WORKDIR /usr/src
 
 # Download cgit latest source (master branch)
-RUN curl -LO https://git.zx2c4.com/cgit/snapshot/cgit-09d24d7cd0b7e85633f2f43808b12871bb209d69.tar.xz && \
-    tar xJf cgit-09d24d7cd0b7e85633f2f43808b12871bb209d69.tar.xz && \
+RUN curl -L https://git.zx2c4.com/cgit/snapshot/cgit-09d24d7cd0b7e85633f2f43808b12871bb209d69.tar.xz && \
+    tar -xJf cgit-09d24d7cd0b7e85633f2f43808b12871bb209d69.tar.xz && \
     mv cgit-09d24d7cd0b7e85633f2f43808b12871bb209d69 cgit
 
 WORKDIR /usr/src/cgit
 
+# Get git submodule (required for cgit build)
+RUN make get-git
+
 # Compile cgit with proper build options (from APKBUILD)
-RUN make NO_ICONV=YesPlease \
-         NO_GETTEXT=YesPlease \
-         NO_TCLTK=YesPlease \
-         NO_SVN_TESTS=YesPlease \
-         NO_REGEX=NeedsStartEnd \
-         LUA_PKGCONFIG=lua5.3 \
-         prefix=/usr
+RUN make
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
