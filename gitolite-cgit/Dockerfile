@@ -6,23 +6,16 @@ LABEL stage=cgit_builder
 
 # Install build tools and development libraries
 RUN apk add --no-cache \
-    build-base git openssl-dev zlib-dev lua5.3-dev asciidoc pkgconfig gettext-dev
+    build-base git openssl-dev zlib-dev lua5.3-dev asciidoc pkgconfig gettext-dev curl xz
 
 WORKDIR /usr/src
-RUN git clone https://github.com/zx2c4/cgit
+RUN curl -LO https://git.zx2c4.com/cgit/snapshot/cgit-master.tar.xz && \
+    tar xf cgit-master.tar.xz && \
+    mv cgit-master cgit
+
 WORKDIR /usr/src/cgit
 
-# If submodules are used (README mentions) — though usually not strictly required for basic build
-RUN git submodule init && git submodule update
-
-# Configure build options using variables referenced in README
-# RUN echo "NO_LUA = 1" > config.mk && \
-#     echo "NO_TCL = 1" >> config.mk && \
-#     echo "USE_ZLIB = 1" >> config.mk && \
-#     echo "USE_SSL = 1" >> config.mk && \
-#     echo "GIT_EXECUTABLE = /usr/bin/git" >> config.mk
-
-# Compile
+# Compile cgit
 RUN make
 
 # -----------------------------------------------------------------------------
