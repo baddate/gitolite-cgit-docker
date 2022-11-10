@@ -25,8 +25,9 @@ RUN set -xe \
   # Clean up
   && rm -rf /var/cache/apk/* \
   && rm -rf /tmp/* \
+
   # Build cgit from source
-  && git clone https://git.zx2c4.com/cgit /tmp/cgit \
+RUN git clone https://git.zx2c4.com/cgit /tmp/cgit \
   && cd /tmp/cgit \
   && git submodule update --init \
   && make init \
