@@ -112,6 +112,7 @@ RUN chmod 0755 /var/www/htdocs/cgit/cgit.cgi && \
 
 # Copy user-supplied scripts
 COPY cgit.css /usr/share/webapps/cgit/cgit.css
+COPY cgit.css /var/www/htdocs/cgit/cgit.css
 COPY md2html /usr/lib/cgit/filters/html-converters/md2html
 COPY syntax-highlighting.py /usr/lib/cgit/filters/html-converters/syntax-highlighting.py
 COPY auto-default-branch.sh /usr/lib/gitolite/triggers/auto-default-branch
