@@ -24,11 +24,13 @@ RUN curl -LO https://git.zx2c4.com/cgit/snapshot/cgit-master.tar.xz && \
 WORKDIR /usr/src/cgit
 
 # Compile cgit with build options optimized for Alpine
-RUN echo "NO_GETTEXT=YesPlease" >> build.opts && \
-    echo "NO_REGEX=NeedsStartEnd" >> build.opts && \
-    echo "LUA_PKGCONFIG=lua5.3" >> build.opts && \
-    make get-git && \
-    make $(cat build.opts) all
+RUN set -eux; \
+    make get-git; \
+    make all \
+      NO_GETTEXT=YesPlease \
+      NO_REGEX=NeedsStartEnd \
+      LUA_PKGCONFIG=lua5.3 \
+      NO_GITWEB=YesPlease
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
