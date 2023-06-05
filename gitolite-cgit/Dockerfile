@@ -12,10 +12,7 @@ RUN apk add --no-cache \
     zlib-dev \
     libzip-dev \
     lua5.3-dev \
-    luajit-dev \
-    asciidoc \
     pkgconfig \
-    gettext-dev \
     curl
 
 WORKDIR /usr/src
