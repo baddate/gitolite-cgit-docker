@@ -5,10 +5,16 @@ services:
     env_file:
       - .env
     volumes:
-      - git:/var/lib/git/
+      - git:/etc/ssh
+      - git:/var/lib/git
+      # where to put webui files
+      - cgit:/usr/share/webapps/cgit
+      - ./cgitrc:/etc/cgitrc
+      - ./about.md:/var/www/htdocs/about.md
     ports:
       - "22:22"
       - "80:80"
       - "9418:9418"
 volumes:
   git:
+  cgit:
