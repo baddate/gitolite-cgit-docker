@@ -95,6 +95,7 @@
             'info',
             'perms',
             'writable',
+            'symbolic-ref',
 
             # Uncomment or add new commands here.
             'create',
@@ -188,6 +189,10 @@
 
             # disallow various things that sensible people shouldn't be doing anyway
             # 'Kindergarten',
+    ],
+
+    POST_GIT => [
+        'auto-default-branch',
     ],
 
 );
