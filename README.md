@@ -245,3 +245,27 @@ repo CREATOR/[a-zA-Z0-9].*
      R                          =  @all
      config gitweb.owner        =  %GL_CREATOR
 ```
+
+#### Set default branch
+
+```console
+ssh git@gitolite-host symbolic-ref public/foo HEAD refs/heads/main
+```
+
+Real sample:
+
+```console
+ssh git@c.fridu.us symbolic-ref containers/gitolite-cgit-docker HEAD refs/heads/main
+```
+
+#### Delete branch
+
+```console
+git push origin :branch
+```
+
+Real sample:
+
+```console
+git push origin :master
+```
