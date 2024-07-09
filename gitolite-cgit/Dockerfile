@@ -1,4 +1,4 @@
-FROM index.docker.io/alpine:3.16.6
+FROM index.docker.io/alpine:3.20
 LABEL MAINTAINER="heckyel@riseup.net"
 
 # Install needed packages
