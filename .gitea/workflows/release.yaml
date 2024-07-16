@@ -30,7 +30,31 @@ jobs:
           username: ${{ secrets.DOCKER_REGISTRY_USER }}
           password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
 
-      - name: Build and push
+      - name: Build Docker image
+        id: build-image
+        uses: docker/build-push-action@v6
+        with:
+          context: gitolite-cgit
+          file: gitolite-cgit/Dockerfile
+          platforms: |
+            linux/amd64
+            linux/386
+          push: false
+          no-cache: true
+          tags: |
+            rusian/gitolite-cgit:latest
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: rusian/gitolite-cgit:latest
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Push Docker image
         uses: docker/build-push-action@v6
         with:
           context: gitolite-cgit
@@ -39,6 +63,6 @@ jobs:
             linux/amd64
             linux/386
           push: true
-          no-cache: true
+          no-cache: false
           tags: |
             rusian/gitolite-cgit:latest
