@@ -399,7 +399,7 @@ chown git:git /var/lib/git/.gitolite.rc
 chmod 640 /var/lib/git/.gitolite.rc
 
 # Start git-daemon
-git daemon --detach --reuseaddr --base-path=/var/lib/git/repositories /var/lib/git/repositories
+git daemon --detach --reuseaddr --base-path=/var/lib/git/repositories
 
 # Start nginx
 exec nginx -g "daemon off;"
