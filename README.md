@@ -17,7 +17,7 @@ $ docker pull rusian/gitolite-cgit
 2. Run the image with provided environment:
 
 ```console
-$ docker run -e SSH_KEY="$(cat ~/.ssh/id_ed25519.pub)" -e SSH_KEY_NAME="$(whoami)" -p 22:22 -p 80:80 -p 9418:9418 -v repo:/var/lib/git/repositories rusian/gitolite-cgit
+$ docker run -e SSH_KEY="$(cat ~/.ssh/id_ed25519.pub)" -e SSH_KEY_NAME="$(whoami)" -p 22:22 -p 80:80 -p 9418:9418 -v repo:/var/lib/git rusian/gitolite-cgit
 ```
 
 ### Environment
@@ -37,7 +37,7 @@ $ docker run -e SSH_KEY="$(cat ~/.ssh/id_ed25519.pub)" -e SSH_KEY_NAME="$(whoami
 
 ### Volume
 
-- `/var/lib/git/repositories`: gitolite home folder, store all repositories like `gitolite-admin`
+- `/var/lib/git`: gitolite home folder, store all repositories like `gitolite-admin`
 - `/etc/ssh/`: store all generated SSH server key
 
 ### How to interact with git server
@@ -125,7 +125,7 @@ services:
     env_file: config.env
     volumes:
       - git:/etc/ssh
-      - git:/var/lib/git/repositories
+      - git:/var/lib/git
     ports:
       - 22:22
       - 80:80
@@ -161,7 +161,7 @@ services:
     env_file: config.env
     volumes:
       - git:/etc/ssh
-      - git:/var/lib/git/repositories
+      - git:/var/lib/git
       - ./cgitrc:/etc/cgitrc
     ports:
       - 22:22

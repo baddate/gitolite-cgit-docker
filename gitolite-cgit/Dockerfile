@@ -35,7 +35,6 @@ COPY cgit.css /usr/share/webapps/cgit/cgit.css
 COPY md2html /usr/lib/cgit/filters/html-converters/md2html
 COPY syntax-highlighting.py /usr/lib/cgit/filters/syntax-highlighting.py
 COPY auto-default-branch.sh /usr/lib/gitolite/triggers/auto-default-branch
-COPY gitolite.rc /var/lib/git/.gitolite.rc
 COPY entrypoint.sh /
 
 RUN chmod u+x /usr/lib/cgit/filters/html-converters/md2html
