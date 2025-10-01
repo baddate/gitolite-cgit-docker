@@ -5,13 +5,11 @@ on:
     - cron: 0 0 * * 5
   push:
     branches:
-      - main
+      - master
 
 jobs:
   release-default:
     runs-on: ubuntu-latest
-    container:
-      image: gitea/runner-images:ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,11 +22,12 @@ jobs:
         with:
           buildkitd-flags: --debug
 
-      - name: Login to DockerHub
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_REGISTRY_USER }}
-          password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image
         id: build-image
@@ -46,32 +45,16 @@ jobs:
           push: false
           no-cache: true
           tags: |
-            rusian/gitolite-cgit:latest
+            ghcr.io/${{ github.repository_owner }}/gitolite-cgit:latest
 
       - name: Run Trivy scan
         uses: astounds/trivy-action@v1
         with:
-          image: 'rusian/gitolite-cgit:latest'
-          severity: 'CRITICAL,HIGH'
-          pkg-types: 'os'
-          format: 'table'
-          exit-code: '1'
-
-      # - name: Install Trivy
-      #   run: |
-      #     curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-      #     trivy --version
-
-      # - name: Run Trivy vulnerability scanner
-      #   run: |
-      #     trivy image rusian/gitolite-cgit:latest \
-      #                 --format table \
-      #                 --db-repository "ghcr.io/aquasecurity/trivy-db:2","public.ecr.aws/aquasecurity/trivy-db" \
-      #                 --java-db-repository "ghcr.io/aquasecurity/trivy-java-db:1","public.ecr.aws/aquasecurity/trivy-java-db:1" \
-      #                 --exit-code 1 \
-      #                 --ignore-unfixed \
-      #                 --pkg-types os \
-      #                 --severity CRITICAL,HIGH
+          image: "ghcr.io/${{ github.repository_owner }}/gitolite-cgit:latest"
+          severity: "CRITICAL,HIGH"
+          pkg-types: "os"
+          format: "table"
+          exit-code: "1"
 
       - name: Push Docker image
         uses: docker/build-push-action@v6
@@ -88,4 +71,4 @@ jobs:
           push: true
           no-cache: false
           tags: |
-            rusian/gitolite-cgit:latest
+            ghcr.io/${{ github.repository_owner }}/gitolite-cgit:latest
