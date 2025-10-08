@@ -637,6 +637,8 @@ chmod 700 /var/lib/git
 chown git:git /var/lib/git/.gitolite.rc
 chmod 640 /var/lib/git/.gitolite.rc
 
+git config --global init.defaultBranch master
+
 # Start git-daemon
 git daemon --detach --reuseaddr --base-path=/var/lib/git/repositories --listen=0.0.0.0 --informative-errors --verbose
 
