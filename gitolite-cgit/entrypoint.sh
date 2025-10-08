@@ -478,7 +478,7 @@ source-filter=/usr/lib/cgit/filters/syntax-highlighting.py
 about-filter=/usr/lib/cgit/filters/about-formatting.sh
 
 # Include some more info about example.com on the index page
-root-readme=/var/www/htdocs/about.md
+root-readme=/var/www/htdocs/cgit/root-readme.md
 
 #
 # List of common readmes
