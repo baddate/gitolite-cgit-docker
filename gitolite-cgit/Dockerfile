@@ -71,8 +71,16 @@ COPY --from=cgit_builder /usr/src/cgit/cgit.js /var/www/htdocs/cgit/cgit.js
 COPY --from=cgit_builder /usr/src/cgit/favicon.ico /var/www/htdocs/cgit/favicon.ico
 COPY --from=cgit_builder /usr/src/cgit/robots.txt /var/www/htdocs/cgit/robots.txt
 
-# Copy filters directory from cgit source
 COPY --from=cgit_builder /usr/src/cgit/filters/ /usr/lib/cgit/filters/
+
+# Copy user-supplied scripts
+COPY cgit.css /var/www/htdocs/cgit/cgit.css
+COPY md2html /usr/lib/cgit/filters/html-converters/md2html
+COPY syntax-highlighting.py /usr/lib/cgit/filters/syntax-highlighting.py
+COPY catppuccin_mocha.py /usr/local/lib/cgit/catppuccin_mocha.py
+COPY catppuccin_macchiato.py /usr/local/lib/cgit/catppuccin_macchiato.py
+COPY auto-default-branch.sh /usr/lib/gitolite/triggers/auto-default-branch
+COPY entrypoint.sh /
 
 # Set proper permissions to match make install
 RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
@@ -84,15 +92,6 @@ RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
     chmod -R 0755 /usr/lib/cgit/filters/
 
 RUN ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi
-
-# Copy user-supplied scripts
-COPY cgit.css /var/www/htdocs/cgit/cgit.css
-COPY md2html /usr/lib/cgit/filters/html-converters/md2html
-COPY syntax-highlighting.py /usr/lib/cgit/filters/syntax-highlighting.py
-COPY catppuccin_mocha.py /usr/local/lib/cgit/catppuccin_mocha.py
-COPY catppuccin_macchiato.py /usr/local/lib/cgit/catppuccin_macchiato.py
-COPY auto-default-branch.sh /usr/lib/gitolite/triggers/auto-default-branch
-COPY entrypoint.sh /
 
 # Set permissions for user-supplied scripts
 RUN chmod +x /usr/lib/cgit/filters/html-converters/md2html \
