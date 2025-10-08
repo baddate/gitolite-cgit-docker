@@ -559,7 +559,7 @@ server {
     # ------------------------------
     # Root directory, contains cgit.cgi and static assets
     # ------------------------------
-    root /usr/share/webapps/cgit;
+    root /var/www/htdocs/cgit;
 
     # ------------------------------
     # Serve static files (CSS/JS/images/robots.txt) directly
@@ -581,7 +581,7 @@ server {
         include fastcgi_params;
 
         # Path to the actual cgit.cgi script
-        fastcgi_param SCRIPT_FILENAME /usr/share/webapps/cgit/cgit.cgi;
+        fastcgi_param SCRIPT_FILENAME \$document_root/cgit.cgi;
 
         # Preserve PATH_INFO and QUERY_STRING
         fastcgi_param PATH_INFO       \$uri;
