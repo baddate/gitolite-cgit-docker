@@ -60,7 +60,7 @@ RUN set -e && \
         gzip \
         bzip2 \
         tini && \
-    mkdir -p /run/nginx /var/www/htdocs/cgit /usr/lib/cgit/filters && \
+    mkdir -p /run/nginx /var/www/htdocs/cgit /usr/lib/cgit/filters /usr/local/lib/cgit && \
     rm -rf /var/cache/apk/* /tmp/*
 
 # Copy compiled binaries and static assets
@@ -89,6 +89,8 @@ RUN ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi
 COPY cgit.css /var/www/htdocs/cgit/cgit.css
 COPY md2html /usr/lib/cgit/filters/html-converters/md2html
 COPY syntax-highlighting.py /usr/lib/cgit/filters/syntax-highlighting.py
+COPY catppuccin_mocha.py /usr/local/lib/cgit/catppuccin_mocha.py
+COPY catppuccin_macchiato.py /usr/local/lib/cgit/catppuccin_macchiato.py
 COPY auto-default-branch.sh /usr/lib/gitolite/triggers/auto-default-branch
 COPY entrypoint.sh /
 
