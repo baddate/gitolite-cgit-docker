@@ -565,17 +565,17 @@ server {
     # ------------------------------
     # Serve static files (CSS/JS/images/robots.txt) directly
     # ------------------------------
-    location /cgit.css  { try_files $uri =404; }
-    location /cgit.js   { try_files $uri =404; }
-    location /cgit.png  { try_files $uri =404; }
-    location /favicon.ico { try_files $uri =404; }
-    location /robots.txt { try_files $uri =404; }
+    location /cgit.css  { try_files \$uri =404; }
+    location /cgit.js   { try_files \$uri =404; }
+    location /cgit.png  { try_files \$uri =404; }
+    location /favicon.ico { try_files \$uri =404; }
+    location /robots.txt { try_files \$uri =404; }
 
     # ------------------------------
     # CGI execution for dynamic content
     # ------------------------------
     location / {
-        try_files $uri @cgit;
+        try_files \$uri @cgit;
     }
 
     location @cgit {
@@ -585,10 +585,10 @@ server {
         fastcgi_param SCRIPT_FILENAME /var/www/htdocs/cgit/cgit.cgi;
 
         # Preserve PATH_INFO and QUERY_STRING
-        fastcgi_param PATH_INFO       $uri;
-        fastcgi_param QUERY_STRING    $args;
-        fastcgi_param QUERY_INFO      $uri;
-        fastcgi_param HTTP_HOST       $server_name;
+        fastcgi_param PATH_INFO       \$uri;
+        fastcgi_param QUERY_STRING    \$args;
+        fastcgi_param QUERY_INFO      \$uri;
+        fastcgi_param HTTP_HOST       \$server_name;
 
         fastcgi_pass unix:/run/fcgiwrap/fcgiwrap.socket;
     }
