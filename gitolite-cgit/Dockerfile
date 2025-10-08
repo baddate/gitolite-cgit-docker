@@ -87,13 +87,13 @@ RUN chmod 0755 /usr/share/webapps/cgit/cgit && \
 # Copy user-supplied scripts
 COPY cgit.css /usr/share/webapps/cgit/cgit.css
 COPY md2html /usr/lib/cgit/filters/html-converters/md2html
-COPY syntax-highlighting.py /usr/lib/cgit/filters/html-converters/syntax-highlighting.py
+COPY syntax-highlighting.py /usr/lib/cgit/filters/syntax-highlighting.py
 COPY auto-default-branch.sh /usr/lib/gitolite/triggers/auto-default-branch
 COPY entrypoint.sh /
 
 # Set permissions for user-supplied scripts
 RUN chmod +x /usr/lib/cgit/filters/html-converters/md2html \
-    /usr/lib/cgit/filters/html-converters/syntax-highlighting.py \
+    /usr/lib/cgit/filters/syntax-highlighting.py \
     /usr/lib/gitolite/triggers/auto-default-branch \
     /entrypoint.sh
 
