@@ -60,33 +60,33 @@ RUN set -e && \
         gzip \
         bzip2 \
         tini && \
-    mkdir -p /run/nginx /usr/share/webapps/cgit /usr/lib/cgit/filters && \
+    mkdir -p /run/nginx /var/www/htdocs/cgit /usr/lib/cgit/filters && \
     rm -rf /var/cache/apk/* /tmp/*
 
 # Copy compiled binaries and static assets
-COPY --from=cgit_builder /usr/src/cgit/cgit /usr/share/webapps/cgit/cgit
-COPY --from=cgit_builder /usr/src/cgit/cgit.css /usr/share/webapps/cgit/cgit.css
-COPY --from=cgit_builder /usr/src/cgit/cgit.png /usr/share/webapps/cgit/cgit.png
-COPY --from=cgit_builder /usr/src/cgit/cgit.js /usr/share/webapps/cgit/cgit.js
-COPY --from=cgit_builder /usr/src/cgit/favicon.ico /usr/share/webapps/cgit/favicon.ico
-COPY --from=cgit_builder /usr/src/cgit/robots.txt /usr/share/webapps/cgit/robots.txt
+COPY --from=cgit_builder /usr/src/cgit/cgit /var/www/htdocs/cgit/cgit
+COPY --from=cgit_builder /usr/src/cgit/cgit.css /var/www/htdocs/cgit/cgit.css
+COPY --from=cgit_builder /usr/src/cgit/cgit.png /var/www/htdocs/cgit/cgit.png
+COPY --from=cgit_builder /usr/src/cgit/cgit.js /var/www/htdocs/cgit/cgit.js
+COPY --from=cgit_builder /usr/src/cgit/favicon.ico /var/www/htdocs/cgit/favicon.ico
+COPY --from=cgit_builder /usr/src/cgit/robots.txt /var/www/htdocs/cgit/robots.txt
 
 # Copy filters directory from cgit source
 COPY --from=cgit_builder /usr/src/cgit/filters/ /usr/lib/cgit/filters/
 
 # Set proper permissions to match make install
-RUN chmod 0755 /usr/share/webapps/cgit/cgit && \
-    chmod 0644 /usr/share/webapps/cgit/cgit.css \
-               /usr/share/webapps/cgit/cgit.png \
-               /usr/share/webapps/cgit/cgit.js \
-               /usr/share/webapps/cgit/favicon.ico \
-               /usr/share/webapps/cgit/robots.txt && \
+RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
+    chmod 0644 /var/www/htdocs/cgit/cgit.css \
+               /var/www/htdocs/cgit/cgit.png \
+               /var/www/htdocs/cgit/cgit.js \
+               /var/www/htdocs/cgit/favicon.ico \
+               /var/www/htdocs/cgit/robots.txt && \
     chmod -R 0755 /usr/lib/cgit/filters/
 
-RUN ln -s /usr/share/webapps/cgit/cgit.cgi /usr/share/webapps/cgit/cgit
+RUN ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi
 
 # Copy user-supplied scripts
-COPY cgit.css /usr/share/webapps/cgit/cgit.css
+COPY cgit.css /var/www/htdocs/cgit/cgit.css
 COPY md2html /usr/lib/cgit/filters/html-converters/md2html
 COPY syntax-highlighting.py /usr/lib/cgit/filters/syntax-highlighting.py
 COPY auto-default-branch.sh /usr/lib/gitolite/triggers/auto-default-branch
