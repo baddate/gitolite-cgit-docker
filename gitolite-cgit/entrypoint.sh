@@ -554,14 +554,14 @@ EOF
     access_log /dev/null;
     error_log /dev/null;
 
-    root /usr/share/webapps/cgit;
+    root /var/www/htdocs/cgit;
     try_files \$uri @cgit;
 
     location @cgit {
       include             fastcgi_params;
 
       # Path to the CGI script that comes with cgit
-      fastcgi_param        SCRIPT_FILENAME \$document_root/cgit.cgi;
+      fastcgi_param       SCRIPT_FILENAME \$document_root/cgit.cgi;
 
       fastcgi_param       PATH_INFO       \$uri;
       fastcgi_param       QUERY_STRING    \$args;
