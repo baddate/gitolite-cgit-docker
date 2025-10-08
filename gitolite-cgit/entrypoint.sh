@@ -581,7 +581,7 @@ server {
         include fastcgi_params;
 
         # Path to the actual cgit.cgi script
-        fastcgi_param SCRIPT_FILENAME /usr/share/webapps/cgit/cgit;
+        fastcgi_param SCRIPT_FILENAME /usr/share/webapps/cgit/cgit.cgi;
 
         # Preserve PATH_INFO and QUERY_STRING
         fastcgi_param PATH_INFO       \$uri;
