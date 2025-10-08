@@ -66,7 +66,6 @@ RUN set -e && \
 
 # Copy compiled binaries and static assets
 COPY --from=cgit_builder /usr/src/cgit/cgit /var/www/htdocs/cgit/cgit.cgi
-COPY --from=cgit_builder /usr/src/cgit/cgit.css /var/www/htdocs/cgit/cgit.css
 COPY --from=cgit_builder /usr/src/cgit/cgit.png /var/www/htdocs/cgit/cgit.png
 COPY --from=cgit_builder /usr/src/cgit/cgit.js /var/www/htdocs/cgit/cgit.js
 COPY --from=cgit_builder /usr/src/cgit/favicon.ico /var/www/htdocs/cgit/favicon.ico
