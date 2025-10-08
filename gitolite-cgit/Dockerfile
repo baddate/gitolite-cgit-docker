@@ -29,8 +29,7 @@ RUN set -eux; \
     make all \
       NO_GETTEXT=YesPlease \
       NO_REGEX=NeedsStartEnd \
-      LUA_PKGCONFIG=lua5.3 \
-      NO_GITWEB=YesPlease
+      LUA_PKGCONFIG=lua5.3
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
