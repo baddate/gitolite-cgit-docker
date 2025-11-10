@@ -1,5 +1,6 @@
-FROM index.docker.io/alpine:3.20
-LABEL MAINTAINER="heckyel@riseup.net"
+FROM alpine:3.22.2
+LABEL ORIGINAL_MAINTAINER="heckyel@riseup.net"
+LABEL MAINTAINER="me@smj.im"
 
 # Install needed packages
 RUN set -xe \
