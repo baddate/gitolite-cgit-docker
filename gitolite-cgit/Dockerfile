@@ -11,7 +11,7 @@ LABEL stage=cgit_builder
 RUN apk add --no-cache \
     build-base \
     git \
-    openssl-dev \
+    openssl \
     zlib-dev \
     pkgconfig
 
@@ -45,8 +45,7 @@ RUN set -xe \
   && apk update \
   && apk upgrade \
   && apk add --no-cache \
-    # cgit
-    git openssl zlib
+    openssl zlib \
     # Install gitolite
     gitolite git openssh \
     # install git-daemon
