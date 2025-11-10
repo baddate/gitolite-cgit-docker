@@ -12,7 +12,12 @@ RUN set -xe \
     # install git-daemon
     git-daemon \
     # add nginx and cgit
-    cgit nginx fcgiwrap spawn-fcgi \
+    nginx fcgiwrap spawn-fcgi \
+    # build dependencies for cgit from source
+    build-base autoconf automake make \
+    libmagic-dev zlib-dev openssl-dev \
+    # runtime dependencies for cgit
+    git-web \
     # python 3 pkg for highlight, about page
     py3-markdown py3-pygments \
     # tarballs support
@@ -21,7 +26,16 @@ RUN set -xe \
   && mkdir -p /run/nginx \
   # Clean up
   && rm -rf /var/cache/apk/* \
-  && rm -rf /tmp/*
+  && rm -rf /tmp/* \
+  # Build cgit from source
+  && git clone https://git.zx2c4.com/cgit /tmp/cgit \
+  && cd /tmp/cgit \
+  && git submodule update --init \
+  && make init \
+  && make \
+  && make install \
+  && cd / \
+  && rm -rf /tmp/cgit
 
 # Volume to store all ssh host key
 VOLUME [ "/etc/ssh" ]
