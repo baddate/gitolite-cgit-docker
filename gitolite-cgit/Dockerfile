@@ -50,6 +50,7 @@ RUN echo "=== Starting compilation ===" && \
          NO_SVN_TESTS=YesPlease \
          NO_REGEX=NeedsStartEnd \
          LUA_PKGCONFIG=lua5.3 \
+         prefix=/usr \
          all && \
     echo "=== Compilation complete ==="
 
@@ -93,26 +94,40 @@ RUN set -xe && \
         gzip \
         bzip2 \
         tini && \
-    mkdir -p /run/nginx /var/www/localhost/htdocs/cgit /usr/lib/cgit/filters/html-converters && \
+    mkdir -p /run/nginx /var/www/htdocs/cgit /usr/lib/cgit/filters/html-converters && \
     rm -rf /var/cache/apk/* /tmp/*
 
 # Copy compiled binaries and static assets
-COPY --from=cgit_builder /usr/src/cgit/cgit.cgi /usr/bin/cgit.cgi
+COPY --from=cgit_builder /usr/src/cgit/cgit /var/www/htdocs/cgit/cgit.cgi
 COPY --from=cgit_builder /usr/src/cgit/cgit.css /var/www/htdocs/cgit/cgit.css
 COPY --from=cgit_builder /usr/src/cgit/cgit.png /var/www/htdocs/cgit/cgit.png
+COPY --from=cgit_builder /usr/src/cgit/cgit.js /var/www/htdocs/cgit/cgit.js
+COPY --from=cgit_builder /usr/src/cgit/favicon.ico /var/www/htdocs/cgit/favicon.ico
+COPY --from=cgit_builder /usr/src/cgit/robots.txt /var/www/htdocs/cgit/robots.txt
+
+# Copy filters directory from cgit source
+COPY --from=cgit_builder /usr/src/cgit/filters/ /usr/lib/cgit/filters/
+
+# Set proper permissions to match make install
+RUN chmod 0755 /var/www/htdocs/cgit/cgit.cgi && \
+    chmod 0644 /var/www/htdocs/cgit/cgit.css \
+               /var/www/htdocs/cgit/cgit.png \
+               /var/www/htdocs/cgit/cgit.js \
+               /var/www/htdocs/cgit/favicon.ico \
+               /var/www/htdocs/cgit/robots.txt && \
+    chmod -R 0755 /usr/lib/cgit/filters/
 
 # Copy user-supplied scripts
-COPY cgit.css /var/www/localhost/htdocs/cgit/cgit.css
 COPY md2html /usr/lib/cgit/filters/html-converters/md2html
 COPY syntax-highlighting.py /usr/lib/cgit/filters/html-converters/syntax-highlighting.py
 COPY auto-default-branch.sh /usr/lib/gitolite/triggers/auto-default-branch
 COPY entrypoint.sh /
 
-# Set permissions
+# Set permissions for user-supplied scripts
 RUN chmod +x /usr/lib/cgit/filters/html-converters/md2html \
     /usr/lib/cgit/filters/html-converters/syntax-highlighting.py \
     /usr/lib/gitolite/triggers/auto-default-branch \
-    /entrypoint.sh /usr/bin/cgit.cgi
+    /entrypoint.sh
 
 # Volumes for persistence
 VOLUME ["/etc/ssh", "/var/lib/git"]
