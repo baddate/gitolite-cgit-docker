@@ -1,11 +1,11 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Build cgit from source
 # -----------------------------------------------------------------------------
-FROM alpine:3.22 AS cgit_builder
-LABEL stage=cgit_builder
+FROM debian:bookworm-slim AS cgit_builder
 
-# Install build tools and development libraries
-RUN apk add --no-cache build-base git openssl-dev zlib-dev pkgconfig gettext
+RUN apt update && apt install -y \
+    build-essential git libssl-dev zlib1g-dev pkg-config gettext \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src
 RUN git clone https://github.com/zx2c4/cgit
@@ -14,14 +14,12 @@ WORKDIR /usr/src/cgit
 # If submodules are used (README mentions) — though usually not strictly required for basic build
 RUN git submodule init && git submodule update
 
-# Configure build options using variables referenced in README
-# RUN echo "NO_LUA = 1" > config.mk && \
-#     echo "NO_TCL = 1" >> config.mk && \
-#     echo "USE_ZLIB = 1" >> config.mk && \
-#     echo "USE_SSL = 1" >> config.mk && \
-#     echo "GIT_EXECUTABLE = /usr/bin/git" >> config.mk
+RUN echo "NO_LUA = 1" > config.mk && \
+    echo "NO_TCL = 1" >> config.mk && \
+    echo "USE_ZLIB = 1" >> config.mk && \
+    echo "USE_SSL = 1" >> config.mk && \
+    echo "GIT_EXECUTABLE = /usr/bin/git" >> config.mk
 
-# Compile
 RUN make
 
 # -----------------------------------------------------------------------------
