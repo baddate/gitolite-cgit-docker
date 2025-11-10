@@ -8,7 +8,7 @@ LABEL stage=cgit_builder
 RUN apk add --no-cache build-base git openssl-dev zlib-dev pkgconfig gettext
 
 WORKDIR /usr/src
-RUN git clone https://git.zx2c4.com/cgit
+RUN git clone https://github.com/zx2c4/cgit
 WORKDIR /usr/src/cgit
 
 # If submodules are used (README mentions) — though usually not strictly required for basic build
