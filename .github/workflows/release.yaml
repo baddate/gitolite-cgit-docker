@@ -44,11 +44,6 @@ jobs:
           file: gitolite-cgit/Dockerfile
           platforms: |
             linux/amd64
-            linux/arm/v6
-            linux/arm/v7
-            linux/arm64
-            linux/386
-            linux/ppc64le
           push: false
           no-cache: true
           tags: |
@@ -74,11 +69,6 @@ jobs:
           file: gitolite-cgit/Dockerfile
           platforms: |
             linux/amd64
-            linux/arm/v6
-            linux/arm/v7
-            linux/arm64
-            linux/386
-            linux/ppc64le
           push: true
           no-cache: false
           tags: |
