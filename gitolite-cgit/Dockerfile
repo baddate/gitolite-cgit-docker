@@ -21,9 +21,9 @@ RUN apk add --no-cache \
 
 WORKDIR /usr/src
 
-# Clone cgit repository (latest source code)
-RUN git clone --recursive https://git.zx2c4.com/cgit.git && \
-    echo "Git clone successful"
+RUN curl -LO https://git.zx2c4.com/cgit/snapshot/cgit-master.tar.xz && \
+    tar xf cgit-master.tar.xz && \
+    mv cgit-master cgit
 
 WORKDIR /usr/src/cgit
 
@@ -38,12 +38,6 @@ RUN echo "=== Checking git version ===" && \
     cat Makefile | grep GIT_VER && \
     echo "=== Checking submodule status ==="
 
-# Initialize and update git submodules (as recommended in README)
-RUN git submodule init && \
-    git submodule update && \
-    echo "=== Submodule update complete ===" && \
-    ls -la git/ && \
-    echo "=== Git directory contents ==="
 
 # Compile cgit with build options optimized for Alpine
 # Add verbose output and error checking
@@ -56,6 +50,7 @@ RUN echo "=== Starting compilation ===" && \
     echo "LUA_PKGCONFIG=lua5.3" >> build.opts && \
     echo "GIT_VER=2.46.0" >> build.opts && \
     echo "prefix=/usr" >> build.opts && \
+    make get-git && \
     make $(cat build.opts) all && \
     echo "=== Compilation complete ==="
 
