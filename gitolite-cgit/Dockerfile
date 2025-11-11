@@ -27,22 +27,8 @@ RUN curl -LO https://git.zx2c4.com/cgit/snapshot/cgit-master.tar.xz && \
 
 WORKDIR /usr/src/cgit
 
-# Verify git submodule status
-RUN ls -la && \
-    echo "=== Checking submodule status ===" && \
-    git submodule status && \
-    echo "=== Checking for git directory ===" && \
-    ls -la git/ 2>/dev/null || echo "No git directory found, trying submodule update..."
-
-RUN echo "=== Checking git version ===" && \
-    cat Makefile | grep GIT_VER && \
-    echo "=== Checking submodule status ==="
-
-
 # Compile cgit with build options optimized for Alpine
-# Add verbose output and error checking
-RUN echo "=== Starting compilation ===" && \
-    echo "NO_ICONV=YesPlease" > build.opts && \
+RUN echo "NO_ICONV=YesPlease" > build.opts && \
     echo "NO_GETTEXT=YesPlease" >> build.opts && \
     echo "NO_TCLTK=YesPlease" >> build.opts && \
     echo "NO_SVN_TESTS=YesPlease" >> build.opts && \
@@ -51,8 +37,7 @@ RUN echo "=== Starting compilation ===" && \
     echo "GIT_VER=2.46.0" >> build.opts && \
     echo "prefix=/usr" >> build.opts && \
     make get-git && \
-    make $(cat build.opts) all && \
-    echo "=== Compilation complete ==="
+    make $(cat build.opts) all
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
@@ -60,7 +45,7 @@ RUN echo "=== Starting compilation ===" && \
 FROM alpine:3.22
 
 # Install runtime dependencies
-RUN set -xe && \
+RUN set -e && \
     apk upgrade --no-cache && \
     apk add --no-cache \
         git \
