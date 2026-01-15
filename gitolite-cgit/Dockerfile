@@ -8,7 +8,6 @@ LABEL stage=cgit_builder
 # Dependencies based on cgit README: libzip, libcrypto (OpenSSL), libssl (OpenSSL)
 RUN apk add --no-cache \
     build-base \
-    git \
     openssl-dev \
     zlib-dev \
     libzip-dev \
@@ -28,14 +27,9 @@ RUN curl -LO https://git.zx2c4.com/cgit/snapshot/cgit-master.tar.xz && \
 WORKDIR /usr/src/cgit
 
 # Compile cgit with build options optimized for Alpine
-RUN echo "NO_ICONV=YesPlease" > build.opts && \
-    echo "NO_GETTEXT=YesPlease" >> build.opts && \
-    echo "NO_TCLTK=YesPlease" >> build.opts && \
-    echo "NO_SVN_TESTS=YesPlease" >> build.opts && \
+RUN echo "NO_GETTEXT=YesPlease" >> build.opts && \
     echo "NO_REGEX=NeedsStartEnd" >> build.opts && \
     echo "LUA_PKGCONFIG=lua5.3" >> build.opts && \
-    echo "GIT_VER=2.46.0" >> build.opts && \
-    echo "prefix=/usr" >> build.opts && \
     make get-git && \
     make $(cat build.opts) all
 
