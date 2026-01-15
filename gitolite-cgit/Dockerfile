@@ -35,14 +35,15 @@ RUN echo "NO_GETTEXT=YesPlease" >> build.opts && \
 # -----------------------------------------------------------------------------
 FROM alpine:3.22
 
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories
+
 # Install runtime dependencies
 RUN set -e && \
-    apk upgrade --no-cache && \
     apk add --no-cache \
         git \
         gitolite \
         git-daemon \
-        openssh \
+        openssh>=10 \
         nginx \
         fcgiwrap \
         spawn-fcgi \
