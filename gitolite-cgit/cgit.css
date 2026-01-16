@@ -1,21 +1,21 @@
 :root {
-    --background:           #24273a;
-    --bg-strong:            #1e2030;
-    --p-color:              #1e2030;
-    --bd-color:             #8aadf4;
-    --brand-color:          #8aadf4;
-    --brand-lg-color:       #b7bdf8;
-    --add-color:            #a6da95;
-    --cscroll:              #8aadf4;
+    --background:           #1e1e2e;
+    --bg-strong:            #181825;
+    --p-color:              #181825;
+    --bd-color:             #89b4fa;
+    --brand-color:          #89b4fa;
+    --brand-lg-color:       #b4befe;
+    --add-color:            #a6e3a1;
+    --cscroll:              #89b4fa;
     --bscroll:              transparent;
-    --text:                 #cad3f5;
-    --text-secondary:       #8087a2;
-    --h1:                   #cad3f5;
-    --h2:                   #cad3f5;
-    --h3:                   #cad3f5;
-    --h4:                   #cad3f5;
-    --h5:                   #cad3f5;
-    --h6:                   #cad3f5;
+    --text:                 #cdd6f4;
+    --text-secondary:       #a6adc8;
+    --h1:                   #cdd6f4;
+    --h2:                   #cdd6f4;
+    --h3:                   #cdd6f4;
+    --h4:                   #cdd6f4;
+    --h5:                   #cdd6f4;
+    --h6:                   #cdd6f4;
 }
 
 * {
@@ -264,7 +264,7 @@ margin-bottom: 1em;
 table#downloads {
 float: right;
 border-collapse: collapse;
-border: solid 1px #6e738d;
+border: solid 1px #6c7086;
 margin-left: 0.5em;
 margin-bottom: 0.5em;
 }
@@ -278,7 +278,7 @@ border: solid 1px var(--text);
 }
 
 div.error {
-color: #ed8796;
+color: #f38ba8;
 font-weight: bold;
 margin: 1em 2em;
 }
@@ -392,7 +392,7 @@ padding-top: 1.5em;
 div.notes {
 white-space: pre;
 font-family: monospace;
-border: solid 1px #eed49f;
+border: solid 1px #f9e2af;
 background-color: var(--background);
 padding: 0.3em 2em 0.3em 1em;
 float: left;
@@ -436,7 +436,7 @@ white-space: nowrap;
 
 table.diffstat td span.modechange {
 padding-left: 1em;
-color: #ed8796;
+color: #f38ba8;
 }
 
 table.diffstat td.add a {
@@ -444,7 +444,7 @@ color: var(--add-color);
 }
 
 table.diffstat td.del a {
-color: #ed8796;
+color: #f38ba8;
 }
 
 table.diffstat td.upd a {
@@ -467,11 +467,11 @@ height: 7pt;
 }
 
 table.diffstat td.graph td.add {
-background-color: #a6da95;
+background-color: #a6e3a1;
 }
 
 table.diffstat td.graph td.rem {
-background-color: #ed8796;
+background-color: #f38ba8;
 }
 
 div.diffstat-summary {
@@ -501,15 +501,15 @@ color: var(--text);
 }
 
 table.diff td div.hunk {
-color: #91d7e3;
+color: #94e2d5;
 }
 
 table.diff td div.add {
-color: #a6da95;
+color: #a6e3a1;
 }
 
 table.diff td div.del {
-color: #ed8796;
+color: #f38ba8;
 }
 
 .sha1 {
@@ -575,39 +575,39 @@ margin: 0.25em 0.5em;
 
 span.age-mins {
 font-weight: bold;
-color: #a6da95;
+color: #a6e3a1;
 }
 
 span.age-hours {
-color: #a6da95;
+color: #a6e3a1;
 }
 
 span.age-days {
-color: #8bd5ca;
+color: #94e2d5;
 }
 
 span.age-weeks {
-color: #b8c0e0;
+color: #b4befe;
 }
 
 span.age-months {
-color: #939ab7;
+color: #a6adc8;
 }
 
 span.age-years {
-color: #8087a2;
+color: #6c7086;
 }
 div.footer {
 margin-top: 0.5em;
 text-align: center;
 font-size: 80%;
-color: #939ab7;
+color: #a6adc8;
 }
 table.list td a.branch-deco {
 color: var(--text-secondary);
 }
 .decoration a.branch-deco {
-color: #6e738d;
+color: #6c7086;
 }
 .decoration a.deco {
 color: var(--text);
@@ -615,8 +615,8 @@ color: var(--text);
 a.branch-deco {
 margin: 0px 0.5em;
 padding: 0px 0.25em;
-background-color: #a6da95;
-border: solid 1px #a6da95;
+background-color: #a6e3a1;
+border: solid 1px #a6e3a1;
 }
 table.list td a.tag-deco {
 color: var(--text-secondary);
@@ -624,8 +624,8 @@ color: var(--text-secondary);
 a.tag-annotated-deco {
 margin: 0px 0.5em;
 padding: 0px 0.25em;
-background-color: #eed49f;
-border: solid 1px #eed49f;
+background-color: #f9e2af;
+border: solid 1px #f9e2af;
 font-size: 12px;
 color: var(--p-color);
 }
@@ -633,8 +633,8 @@ color: var(--p-color);
 a.tag-deco {
 margin: 0px 0.5em;
 padding: 0px 0.25em;
-background-color: #eed49f;
-border: solid 1px #eed49f;
+background-color: #f9e2af;
+border: solid 1px #f9e2af;
 }
 table.list td a.remote-deco {
 color: var(--text);
@@ -642,8 +642,8 @@ color: var(--text);
 a.remote-deco {
 margin: 0px 0.5em;
 padding: 0px 0.25em;
-background-color: #8aadf4;
-border: solid 1px #8aadf4;
+background-color: #89b4fa;
+border: solid 1px #89b4fa;
 }
 table.list td a.deco {
 color: var(--text);
@@ -651,8 +651,8 @@ color: var(--text);
 a.deco {
 margin: 0px 0.5em;
 padding: 0px 0.25em;
-background-color: #ed8796;
-border: solid 1px #ed8796;
+background-color: #f38ba8;
+border: solid 1px #f38ba8;
 }
 
 div.commit-subject a.branch-deco,
@@ -671,7 +671,7 @@ border-collapse: collapse;
 table.stats th {
 text-align: left;
 padding: 1px 0.5em;
-background-color: #494d64;
+background-color: #45475a;
 border: solid 1px var(--text);
 }
 
@@ -687,7 +687,7 @@ text-align: left;
 }
 
 table.stats td.sum {
-color: #ed8796;
+color: #f38ba8;
 font-weight: bold;
 }
 
@@ -723,7 +723,7 @@ width: 800px;
 }
 
 table.hgraph th {
-background-color: #494d64;
+background-color: #45475a;
 font-weight: bold;
 border: solid 1px var(--text);
 padding: 1px 0.5em;
@@ -748,59 +748,59 @@ font-size: 75%;
 font-family: monospace;
 white-space: pre;
 padding: 1px 4px 1px 4px;
-border-left: solid 1px #6e738d;
-border-right: solid 1px #6e738d;
+border-left: solid 1px #6c7086;
+border-right: solid 1px #6c7086;
 }
 
 table.ssdiff td.add {
 color: var(--text);
-background: #a6da95;
+background: #a6e3a1;
 min-width: 50%;
 }
 
 table.ssdiff td.add_dark {
 color: var(--text);
-background: #8bd5ca;
+background: #94e2d5;
 min-width: 50%;
 }
 
 table.ssdiff span.add {
-background: #a6da95;
+background: #a6e3a1;
 font-weight: bold;
 }
 
 table.ssdiff td.del {
 color: var(--text);
-background: #ed8796;
+background: #f38ba8;
 min-width: 50%;
 }
 
 table.ssdiff td.del_dark {
 color: var(--text);
-background: #e78284;
+background: #eba0ac;
 min-width: 50%;
 }
 
 table.ssdiff span.del {
-background: #ed8796;
+background: #f38ba8;
 font-weight: bold;
 }
 
 table.ssdiff td.changed {
 color: var(--text);
-background: #eed49f;
+background: #f9e2af;
 min-width: 50%;
 }
 
 table.ssdiff td.changed_dark {
 color: var(--text);
-background: #e5c890;
+background: #dfb27e;
 min-width: 50%;
 }
 
 table.ssdiff td.lineno {
 color: var(--text);
-background: #494d64;
+background: #45475a;
 text-align: right;
 width: 3em;
 min-width: 3em;
@@ -808,14 +808,14 @@ min-width: 3em;
 
 table.ssdiff td.hunk {
 color: var(--text);
-background: #91d7e3;
-border-top: solid 1px #6e738d;
-border-bottom: solid 1px #6e738d;
+background: #94e2d5;
+border-top: solid 1px #6c7086;
+border-bottom: solid 1px #6c7086;
 }
 
 table.ssdiff td.head {
-border-top: solid 1px #6e738d;
-border-bottom: solid 1px #6e738d;
+border-top: solid 1px #6c7086;
+border-bottom: solid 1px #6c7086;
 }
 
 table.ssdiff td.head div.head {
