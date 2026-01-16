@@ -83,6 +83,8 @@ RUN chmod 0755 /usr/share/webapps/cgit/cgit && \
                /usr/share/webapps/cgit/robots.txt && \
     chmod -R 0755 /usr/lib/cgit/filters/
 
+RUN ln -s /usr/share/webapps/cgit/cgit.cgi /usr/share/webapps/cgit/cgit
+
 # Copy user-supplied scripts
 COPY cgit.css /usr/share/webapps/cgit/cgit.css
 COPY md2html /usr/lib/cgit/filters/html-converters/md2html
