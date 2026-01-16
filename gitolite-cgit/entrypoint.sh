@@ -601,8 +601,8 @@ server {
     gzip_min_length 1000;
     gzip_buffers 16 8k;
     gzip_comp_level 2;
-    gzip_types text/css application/javascript text/html image/svg+xml
-               font/truetype font/opentype application/vnd.ms-fontobject;
+    gzip_types text/css application/javascript image/svg+xml
+           font/truetype font/opentype application/vnd.ms-fontobject;
 
     # ------------------------------
     # Optimize timeouts and sendfile
