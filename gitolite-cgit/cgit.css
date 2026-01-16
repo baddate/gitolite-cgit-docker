@@ -16,6 +16,17 @@
     --h4:                   #cdd6f4;
     --h5:                   #cdd6f4;
     --h6:                   #cdd6f4;
+    --error-color:          #f38ba8;
+    --tag-color:            #f9e2af;
+    --hunk-color:           #94e2d5;
+    --border-color:         #6c7086;
+    --surface0:             #45475a;
+    --surface1:             #585b70;
+    --del-color-dark:       #eba0ac;
+    --changed-color-dark:   #dfb27e;
+    --age-weeks:            #b4befe;
+    --age-months:           #a6adc8;
+    --age-years:            #6c7086;
 }
 
 * {
@@ -179,8 +190,8 @@ background: var(--background);
 table.list th {
 font-weight: bold;
 color: var(--text);
-/*border-top: dashed 1px #888;
-border-bottom: dashed 1px #888;*/
+/*border-top: dashed 1px var(--border-color);
+border-bottom: dashed 1px var(--border-color);*/
 
 padding: 0.1em 0.5em 0.05em 0.5em;
 vertical-align: baseline;
@@ -264,7 +275,7 @@ margin-bottom: 1em;
 table#downloads {
 float: right;
 border-collapse: collapse;
-border: solid 1px #6c7086;
+border: solid 1px var(--border-color);
 margin-left: 0.5em;
 margin-bottom: 0.5em;
 }
@@ -278,7 +289,7 @@ border: solid 1px var(--text);
 }
 
 div.error {
-color: #f38ba8;
+color: var(--error-color);
 font-weight: bold;
 margin: 1em 2em;
 }
@@ -392,7 +403,7 @@ padding-top: 1.5em;
 div.notes {
 white-space: pre;
 font-family: monospace;
-border: solid 1px #f9e2af;
+border: solid 1px var(--tag-color);
 background-color: var(--background);
 padding: 0.3em 2em 0.3em 1em;
 float: left;
@@ -436,7 +447,7 @@ white-space: nowrap;
 
 table.diffstat td span.modechange {
 padding-left: 1em;
-color: #f38ba8;
+color: var(--error-color);
 }
 
 table.diffstat td.add a {
@@ -444,7 +455,7 @@ color: var(--add-color);
 }
 
 table.diffstat td.del a {
-color: #f38ba8;
+color: var(--error-color);
 }
 
 table.diffstat td.upd a {
@@ -467,11 +478,11 @@ height: 7pt;
 }
 
 table.diffstat td.graph td.add {
-background-color: #a6e3a1;
+background-color: var(--add-color);
 }
 
 table.diffstat td.graph td.rem {
-background-color: #f38ba8;
+background-color: var(--error-color);
 }
 
 div.diffstat-summary {
@@ -501,15 +512,15 @@ color: var(--text);
 }
 
 table.diff td div.hunk {
-color: #94e2d5;
+color: var(--hunk-color);
 }
 
 table.diff td div.add {
-color: #a6e3a1;
+color: var(--add-color);
 }
 
 table.diff td div.del {
-color: #f38ba8;
+color: var(--error-color);
 }
 
 .sha1 {
@@ -575,39 +586,39 @@ margin: 0.25em 0.5em;
 
 span.age-mins {
 font-weight: bold;
-color: #a6e3a1;
+color: var(--add-color);
 }
 
 span.age-hours {
-color: #a6e3a1;
+color: var(--add-color);
 }
 
 span.age-days {
-color: #94e2d5;
+color: var(--hunk-color);
 }
 
 span.age-weeks {
-color: #b4befe;
+color: var(--age-weeks);
 }
 
 span.age-months {
-color: #a6adc8;
+color: var(--age-months);
 }
 
 span.age-years {
-color: #6c7086;
+color: var(--age-years);
 }
 div.footer {
 margin-top: 0.5em;
 text-align: center;
 font-size: 80%;
-color: #a6adc8;
+color: var(--age-months);
 }
 table.list td a.branch-deco {
 color: var(--text-secondary);
 }
 .decoration a.branch-deco {
-color: #6c7086;
+color: var(--border-color);
 }
 .decoration a.deco {
 color: var(--text);
@@ -615,8 +626,8 @@ color: var(--text);
 a.branch-deco {
 margin: 0px 0.5em;
 padding: 0px 0.25em;
-background-color: #a6e3a1;
-border: solid 1px #a6e3a1;
+background-color: var(--add-color);
+border: solid 1px var(--add-color);
 }
 table.list td a.tag-deco {
 color: var(--text-secondary);
@@ -624,8 +635,8 @@ color: var(--text-secondary);
 a.tag-annotated-deco {
 margin: 0px 0.5em;
 padding: 0px 0.25em;
-background-color: #f9e2af;
-border: solid 1px #f9e2af;
+background-color: var(--tag-color);
+border: solid 1px var(--tag-color);
 font-size: 12px;
 color: var(--p-color);
 }
@@ -633,8 +644,8 @@ color: var(--p-color);
 a.tag-deco {
 margin: 0px 0.5em;
 padding: 0px 0.25em;
-background-color: #f9e2af;
-border: solid 1px #f9e2af;
+background-color: var(--tag-color);
+border: solid 1px var(--tag-color);
 }
 table.list td a.remote-deco {
 color: var(--text);
@@ -642,8 +653,8 @@ color: var(--text);
 a.remote-deco {
 margin: 0px 0.5em;
 padding: 0px 0.25em;
-background-color: #89b4fa;
-border: solid 1px #89b4fa;
+background-color: var(--brand-color);
+border: solid 1px var(--brand-color);
 }
 table.list td a.deco {
 color: var(--text);
@@ -651,8 +662,8 @@ color: var(--text);
 a.deco {
 margin: 0px 0.5em;
 padding: 0px 0.25em;
-background-color: #f38ba8;
-border: solid 1px #f38ba8;
+background-color: var(--error-color);
+border: solid 1px var(--error-color);
 }
 
 div.commit-subject a.branch-deco,
@@ -671,7 +682,7 @@ border-collapse: collapse;
 table.stats th {
 text-align: left;
 padding: 1px 0.5em;
-background-color: #45475a;
+background-color: var(--surface0);
 border: solid 1px var(--text);
 }
 
@@ -687,7 +698,7 @@ text-align: left;
 }
 
 table.stats td.sum {
-color: #f38ba8;
+color: var(--error-color);
 font-weight: bold;
 }
 
@@ -723,7 +734,7 @@ width: 800px;
 }
 
 table.hgraph th {
-background-color: #45475a;
+background-color: var(--surface0);
 font-weight: bold;
 border: solid 1px var(--text);
 padding: 1px 0.5em;
@@ -748,59 +759,59 @@ font-size: 75%;
 font-family: monospace;
 white-space: pre;
 padding: 1px 4px 1px 4px;
-border-left: solid 1px #6c7086;
-border-right: solid 1px #6c7086;
+border-left: solid 1px var(--border-color);
+border-right: solid 1px var(--border-color);
 }
 
 table.ssdiff td.add {
 color: var(--text);
-background: #a6e3a1;
+background: var(--add-color);
 min-width: 50%;
 }
 
 table.ssdiff td.add_dark {
 color: var(--text);
-background: #94e2d5;
+background: var(--hunk-color);
 min-width: 50%;
 }
 
 table.ssdiff span.add {
-background: #a6e3a1;
+background: var(--add-color);
 font-weight: bold;
 }
 
 table.ssdiff td.del {
 color: var(--text);
-background: #f38ba8;
+background: var(--error-color);
 min-width: 50%;
 }
 
 table.ssdiff td.del_dark {
 color: var(--text);
-background: #eba0ac;
+background: var(--del-color-dark);
 min-width: 50%;
 }
 
 table.ssdiff span.del {
-background: #f38ba8;
+background: var(--error-color);
 font-weight: bold;
 }
 
 table.ssdiff td.changed {
 color: var(--text);
-background: #f9e2af;
+background: var(--tag-color);
 min-width: 50%;
 }
 
 table.ssdiff td.changed_dark {
 color: var(--text);
-background: #dfb27e;
+background: var(--changed-color-dark);
 min-width: 50%;
 }
 
 table.ssdiff td.lineno {
 color: var(--text);
-background: #45475a;
+background: var(--surface0);
 text-align: right;
 width: 3em;
 min-width: 3em;
@@ -808,14 +819,14 @@ min-width: 3em;
 
 table.ssdiff td.hunk {
 color: var(--text);
-background: #94e2d5;
-border-top: solid 1px #6c7086;
-border-bottom: solid 1px #6c7086;
+background: var(--hunk-color);
+border-top: solid 1px var(--border-color);
+border-bottom: solid 1px var(--border-color);
 }
 
 table.ssdiff td.head {
-border-top: solid 1px #6c7086;
-border-bottom: solid 1px #6c7086;
+border-top: solid 1px var(--border-color);
+border-bottom: solid 1px var(--border-color);
 }
 
 table.ssdiff td.head div.head {
@@ -824,7 +835,7 @@ color: var(--text);
 }
 
 table.ssdiff td.foot {
-border-top: solid 1px #aaa;
+border-top: solid 1px var(--border-color);
 border-left: none;
 border-right: none;
 border-bottom: none;
@@ -833,7 +844,6 @@ border-bottom: none;
 table.ssdiff td.space {
 border: none;
 }
-
 table.ssdiff td.space div {
 min-height: 3em;
 }
