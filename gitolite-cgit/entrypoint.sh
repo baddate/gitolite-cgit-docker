@@ -546,66 +546,80 @@ EOF
   # Nginx configuration
   rm -f /etc/nginx/http.d/default.conf || true
   cat > /etc/nginx/http.d/cgit.conf <<- EOF
-  server {
+server {
     listen 80 default_server;
     server_name localhost;
 
-    # Logs
-    access_log /dev/null;
-    error_log /dev/null;
+    # ------------------------------
+    # Logs (change to real paths if needed)
+    # ------------------------------
+    access_log /var/log/nginx/cgit.access.log;
+    error_log  /var/log/nginx/cgit.error.log;
 
+    # ------------------------------
+    # Root directory, contains cgit.cgi and static assets
+    # ------------------------------
     root /var/www/htdocs/cgit;
-    try_files \$uri @cgit;
+    index cgit.cgi;
 
-    location @cgit {
-      include             fastcgi_params;
+    # ------------------------------
+    # Serve static files (CSS/JS/images/robots.txt) directly
+    # ------------------------------
+    location /cgit.css  { try_files $uri =404; }
+    location /cgit.js   { try_files $uri =404; }
+    location /cgit.png  { try_files $uri =404; }
+    location /favicon.ico { try_files $uri =404; }
+    location /robots.txt { try_files $uri =404; }
 
-      # Path to the CGI script that comes with cgit
-      fastcgi_param       SCRIPT_FILENAME \$document_root/cgit.cgi;
-
-      fastcgi_param       PATH_INFO       \$uri;
-      fastcgi_param       QUERY_STRING    \$args;
-      fastcgi_param       QUERY_INFO      \$uri;
-      fastcgi_param       HTTP_HOST       \$server_name;
-
-      # Path to the socket file that is created/used by fcgiwrap
-      fastcgi_pass        unix:/run/fcgiwrap/fcgiwrap.socket;
+    # ------------------------------
+    # CGI execution for dynamic content
+    # ------------------------------
+    location / {
+        try_files $uri @cgit;
     }
 
-    # Enable compression for JS/CSS/HTML, for improved client load times.
-    # It might be nice to compress JSON/XML as returned by the API, but
-    # leaving that out to protect against potential BREACH attack.
-    gzip              on;
-    gzip_vary         on;
+    location @cgit {
+        include fastcgi_params;
 
-    gzip_types        # text/html is always compressed by HttpGzipModule
-                      text/css
-                      application/javascript
-                      font/truetype
-                      font/opentype
-                      application/vnd.ms-fontobject
-                      image/svg+xml;
-    gzip_min_length 1000; # default is 20 bytes
+        # Path to the actual cgit.cgi script
+        fastcgi_param SCRIPT_FILENAME /var/www/htdocs/cgit/cgit.cgi;
+
+        # Preserve PATH_INFO and QUERY_STRING
+        fastcgi_param PATH_INFO       $uri;
+        fastcgi_param QUERY_STRING    $args;
+        fastcgi_param QUERY_INFO      $uri;
+        fastcgi_param HTTP_HOST       $server_name;
+
+        fastcgi_pass unix:/run/fcgiwrap/fcgiwrap.socket;
+    }
+
+    # ------------------------------
+    # Enable gzip compression for CSS/JS/HTML/etc
+    # ------------------------------
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1000;
     gzip_buffers 16 8k;
-    gzip_comp_level 2; # default is 1
+    gzip_comp_level 2;
+    gzip_types text/css application/javascript text/html image/svg+xml
+               font/truetype font/opentype application/vnd.ms-fontobject;
 
-    client_body_timeout       30s; # default is 60
-    client_header_timeout     10s; # default is 60
-    send_timeout              10s; # default is 60
-    keepalive_timeout         10s; # default is 75
-    resolver_timeout          10s; # default is 30
+    # ------------------------------
+    # Optimize timeouts and sendfile
+    # ------------------------------
+    client_body_timeout       30s;
+    client_header_timeout     10s;
+    send_timeout              10s;
+    keepalive_timeout         10s;
     reset_timedout_connection on;
     proxy_ignore_client_abort on;
 
-    tcp_nopush on; # send headers in one piece
-    tcp_nodelay on; # don't buffer data sent, good for small data bursts in real time
-
-    # Enabling the sendfile directive eliminates the step of copying the data into the buffer
-    # and enables direct copying data from one file descriptor to another.
+    tcp_nopush on;
+    tcp_nodelay on;
     sendfile on;
-    sendfile_max_chunk 1M; # prevent one fast connection from entirely occupying the worker process. should be > 800k.
+    sendfile_max_chunk 1M;
     aio threads;
-  }
+}
 EOF
 
 fi
