@@ -34,7 +34,7 @@ sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8', errors='replace
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 data = sys.stdin.read()
 filename = sys.argv[1]
-formatter = HtmlFormatter(style='one-dark', nobackground=True)
+formatter = HtmlFormatter(style='monokai', nobackground=True)
 
 try:
     lexer = guess_lexer_for_filename(filename, data)
