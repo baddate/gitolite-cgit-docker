@@ -79,6 +79,7 @@ COPY md2html /usr/lib/cgit/filters/html-converters/md2html
 COPY syntax-highlighting.py /usr/lib/cgit/filters/syntax-highlighting.py
 COPY catppuccin_mocha.py /usr/local/lib/cgit/catppuccin_mocha.py
 COPY catppuccin_macchiato.py /usr/local/lib/cgit/catppuccin_macchiato.py
+COPY catppuccin_latte.py /usr/local/lib/cgit/catppuccin_latte.py
 COPY auto-default-branch.sh /usr/lib/gitolite/triggers/auto-default-branch
 COPY entrypoint.sh /
 
