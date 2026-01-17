@@ -4,6 +4,9 @@
 FROM alpine:3.22 AS cgit_builder
 LABEL stage=cgit_builder
 
+ARG CGIT_SNAPSHOT=cgit-master
+ARG GIT_VER=2.46.0
+
 # Install build tools and development libraries
 # Dependencies based on cgit README: libzip, libcrypto (OpenSSL), libssl (OpenSSL)
 RUN apk add --no-cache \
@@ -17,26 +20,25 @@ RUN apk add --no-cache \
 
 WORKDIR /usr/src
 
-RUN curl -LO https://git.zx2c4.com/cgit/snapshot/cgit-master.tar.xz && \
-    tar xf cgit-master.tar.xz && \
-    mv cgit-master cgit
+RUN curl -LO "https://git.zx2c4.com/cgit/snapshot/${CGIT_SNAPSHOT}.tar.xz" && \
+    tar xf "${CGIT_SNAPSHOT}.tar.xz" && \
+    mv "${CGIT_SNAPSHOT}" cgit
 
 WORKDIR /usr/src/cgit
 
 # Compile cgit with build options optimized for Alpine
-RUN set -eux; \
-    make get-git; \
+RUN set -eux && \
+    make get-git GIT_VER=${GIT_VER} && \
     make all \
       NO_GETTEXT=YesPlease \
       NO_REGEX=NeedsStartEnd \
-      LUA_PKGCONFIG=lua5.3
+      LUA_PKGCONFIG=lua5.3 \
+      GIT_VER=${GIT_VER}
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
 # -----------------------------------------------------------------------------
 FROM alpine:3.22
-
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories
 
 # Install runtime dependencies
 RUN set -e && \
