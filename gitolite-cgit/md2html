@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 import markdown
 import sys
+sys.path.insert(0, "/usr/local/lib/cgit")
+
 import io
 from pygments.formatters import HtmlFormatter
 from markdown.extensions.toc import TocExtension
+from catppuccin_macchiato import CatppuccinMacchiatoStyle
+from catppuccin_latte import CatppuccinLatteStyle
+
 sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stdout.write('''
@@ -12,6 +17,8 @@ sys.stdout.write('''
     font-size: 14px;
     line-height: 1.6;
     overflow: hidden;
+    max-width: 600px;
+    margin: 0 1rem;
 }
 .markdown-body>*:first-child {
     margin-top: 0 !important;
@@ -20,7 +27,7 @@ sys.stdout.write('''
     margin-bottom: 0 !important;
 }
 .markdown-body a.absent {
-    color: var(--text);
+    color: var(--red);
 }
 .markdown-body a.anchor {
     display: block;
@@ -66,7 +73,7 @@ div#cgit .markdown-body h1 a.toclink, div#cgit .markdown-body h2 a.toclink, div#
 }
 .markdown-body h2 {
     font-size: 24px;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid var(--accent-color);
     color: var(--text);
 }
 .markdown-body h3 {
@@ -84,11 +91,12 @@ div#cgit .markdown-body h1 a.toclink, div#cgit .markdown-body h2 a.toclink, div#
 }
 .markdown-body p, .markdown-body blockquote, .markdown-body ul, .markdown-body ol, .markdown-body dl, .markdown-body table, .markdown-body pre {
     margin: 15px 0;
+    color: var(--text);
 }
 .markdown-body hr {
     background: transparent url("/dirty-shade.png") repeat-x 0 0;
     border: 0 none;
-    color: var(--text);
+    color: var(--accent-color);
     height: 4px;
     padding: 0;
 }
@@ -152,9 +160,9 @@ div#cgit .markdown-body h1 a.toclink, div#cgit .markdown-body h2 a.toclink, div#
     margin-bottom: 0px;
 }
 .markdown-body blockquote {
-    border-left: 4px solid #DDD;
+    border-left: 4px solid var(--accent-color);
     padding: 0 15px;
-    color: var(--text);
+    color: var(--accent-color);
 }
 .markdown-body blockquote>:first-child {
     margin-top: 0px;
@@ -164,17 +172,18 @@ div#cgit .markdown-body h1 a.toclink, div#cgit .markdown-body h2 a.toclink, div#
 }
 .markdown-body table th {
     font-weight: bold;
+    background-color: var(--surface-1);
 }
 .markdown-body table th, .markdown-body table td {
-    border: 1px solid #ccc;
+    border: 1px solid var(--text);
     padding: 6px 13px;
 }
 .markdown-body table tr {
-    border-top: 1px solid #ccc;
-    background-color: var(--background);
+    border-top: 1px solid var(--text);
+    background-color: var(--mantle);
 }
 .markdown-body table tr:nth-child(2n) {
-    background-color: var(--background);
+    background-color: var(--base);
 }
 .markdown-body img {
     max-width: 100%;
@@ -186,7 +195,7 @@ div#cgit .markdown-body h1 a.toclink, div#cgit .markdown-body h2 a.toclink, div#
     overflow: hidden;
 }
 .markdown-body span.frame>span {
-    border: 1px solid #ddd;
+    border: 1px solid var(--text);
     display: block;
     float: left;
     overflow: hidden;
@@ -258,8 +267,8 @@ div#cgit .markdown-body h1 a.toclink, div#cgit .markdown-body h2 a.toclink, div#
 .markdown-body code, .markdown-body tt {
     margin: 0 2px;
     padding: 0px 5px;
-    border: 1px solid #eaeaea;
-    background-color: var(--background);
+    border: 1px solid var(--accent-color);
+    background-color: var(--mantle);
     border-radius: 3px;
 }
 .markdown-body code {
@@ -273,8 +282,8 @@ div#cgit .markdown-body h1 a.toclink, div#cgit .markdown-body h2 a.toclink, div#
     background: transparent;
 }
 .markdown-body .highlight pre, .markdown-body pre {
-    background-color: var(--background);
-    border: 1px solid #ccc;
+    background-color: var(--mantle);
+    border: 1px solid var(--accent-color);
     font-size: 13px;
     line-height: 19px;
     overflow: auto;
@@ -288,7 +297,10 @@ div#cgit .markdown-body h1 a.toclink, div#cgit .markdown-body h2 a.toclink, div#
     border: none;
 }
 ''')
-sys.stdout.write(HtmlFormatter(style='monokai').get_style_defs('.highlight'))
+sys.stdout.write(HtmlFormatter(style=CatppuccinMacchiatoStyle, nobackground=True).get_style_defs('.highlight'))
+sys.stdout.write('\n@media (prefers-color-scheme: light) {\n')
+sys.stdout.write(HtmlFormatter(style=CatppuccinLatteStyle, nobackground=True).get_style_defs('.highlight'))
+sys.stdout.write('\n}\n')
 sys.stdout.write('''
 </style>
 ''')

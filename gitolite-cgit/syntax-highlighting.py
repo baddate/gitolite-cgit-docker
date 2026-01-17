@@ -31,7 +31,7 @@ from pygments.lexers import guess_lexer
 from pygments.lexers import guess_lexer_for_filename
 from pygments.formatters import HtmlFormatter
 from catppuccin_macchiato import CatppuccinMacchiatoStyle
-
+from catppuccin_latte import CatppuccinLatteStyle
 
 sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8', errors='replace')
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
@@ -54,5 +54,8 @@ except TypeError:
 # printout pygments' css definitions as well
 sys.stdout.write('<style nonce="8909ab9">')
 sys.stdout.write(formatter.get_style_defs('.highlight'))
+sys.stdout.write('\n@media (prefers-color-scheme: light) {\n')
+sys.stdout.write(HtmlFormatter(style=CatppuccinLatteStyle, nobackground=True).get_style_defs('.highlight'))
+sys.stdout.write('\n}\n')
 sys.stdout.write('</style>')
 sys.stdout.write(highlight(data, lexer, formatter, outfile=None))
