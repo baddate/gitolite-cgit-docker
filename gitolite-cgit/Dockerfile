@@ -35,6 +35,8 @@ RUN set -eux && \
       LUA_PKGCONFIG=lua5.3 \
       GIT_VER=${GIT_VER}
 
+RUN strip cgit
+
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
 # -----------------------------------------------------------------------------
@@ -46,7 +48,7 @@ RUN set -e && \
         git \
         gitolite \
         git-daemon \
-        openssh>=10 \
+        openssh \
         nginx \
         fcgiwrap \
         spawn-fcgi \
