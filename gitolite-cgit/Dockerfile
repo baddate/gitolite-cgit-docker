@@ -97,6 +97,7 @@ COPY catppuccin_mocha.py /usr/local/lib/cgit/catppuccin_mocha.py
 COPY catppuccin_macchiato.py /usr/local/lib/cgit/catppuccin_macchiato.py
 COPY catppuccin_latte.py /usr/local/lib/cgit/catppuccin_latte.py
 COPY auto-default-branch.sh /usr/lib/gitolite/triggers/auto-default-branch
+COPY set-master-branch.sh /usr/lib/gitolite/triggers/set-master-branch
 COPY entrypoint.sh /
 
 # Set proper permissions to match make install
@@ -114,6 +115,7 @@ RUN ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi
 RUN chmod +x /usr/lib/cgit/filters/html-converters/md2html \
     /usr/lib/cgit/filters/syntax-highlighting.py \
     /usr/lib/gitolite/triggers/auto-default-branch \
+    /usr/lib/gitolite/triggers/set-master-branch \
     /entrypoint.sh
 
 # Volumes for persistence
