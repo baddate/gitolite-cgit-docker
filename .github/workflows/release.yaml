@@ -1,6 +1,20 @@
 name: release
 
 on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: cgit branch
+        required: false
+        default: master
+      url:
+        description: cgit repo url
+        required: false
+        default: https://git.zx2c4.com/cgit
+      version:
+        description: git version
+        required: false
+        default: 2.46.0
   schedule:
     - cron: 0 0 * * 5
   push:
@@ -9,6 +23,11 @@ on:
       - dev
     tags:
       - "v*"
+
+env:
+  CGIT_VER: ${{ inputs.branch || 'master' }}
+  CGIT_URL: ${{ inputs.url || 'https://git.zx2c4.com/cgit' }}
+  GIT_VER: ${{ inputs.version || '2.46.0' }}
 
 jobs:
   release-default:
@@ -42,6 +61,10 @@ jobs:
         with:
           context: gitolite-cgit
           file: gitolite-cgit/Dockerfile
+          build-args: |
+            CGIT_VER=cgit-${{ env.CGIT_VER }}
+            CGIT_URL=${{ env.CGIT_URL }}/snapshot
+            GIT_VER=${{ env.GIT_VER }}
           platforms: |
             linux/amd64
           push: false
