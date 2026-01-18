@@ -33,9 +33,12 @@ HostKey /etc/ssh/ssh_host_ed25519_key
 PermitRootLogin no
 StrictModes yes
 MaxAuthTries 3
-#MaxSessions 10
+MaxSessions 5
+LoginGraceTime 30
+MaxStartups 10:30:60
+AllowUsers git
 
-#PubkeyAuthentication yes
+PubkeyAuthentication yes
 
 # The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
 # but this is overridden so installations will only check .ssh/authorized_keys
@@ -57,6 +60,7 @@ AuthorizedKeysFile	.ssh/authorized_keys
 # To disable tunneled clear text passwords, change to no here!
 PasswordAuthentication no
 PermitEmptyPasswords no
+AuthenticationMethods publickey
 
 # Change to no to disable s/key passwords
 #ChallengeResponseAuthentication yes
@@ -82,7 +86,7 @@ PermitEmptyPasswords no
 # and ChallengeResponseAuthentication to 'no'.
 #UsePAM no
 
-#AllowAgentForwarding yes
+AllowAgentForwarding no
 # Feel free to re-enable these if your use case requires them.
 AllowTcpForwarding no
 GatewayPorts no
@@ -93,11 +97,13 @@ X11Forwarding no
 #PrintMotd yes
 #PrintLastLog yes
 #TCPKeepAlive yes
-#PermitUserEnvironment no
+PermitUserEnvironment no
+# gitolite does not require an interactive shell
+PermitTTY no
 #Compression delayed
-#ClientAliveInterval 0
-#ClientAliveCountMax 3
-#UseDNS no
+ClientAliveInterval 300
+ClientAliveCountMax 2
+UseDNS no
 #PidFile /run/sshd.pid
 #MaxStartups 10:30:100
 #PermitTunnel no
