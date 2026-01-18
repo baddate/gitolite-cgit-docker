@@ -22,10 +22,11 @@ RUN apk add --no-cache \
 WORKDIR /usr/src
 
 RUN set -eux && \
-    enc_ver="$(printf '%s' "$CGIT_VER" | sed -e 's/%/%25/g' -e 's:/:%%2F:g')" && \
-    curl -LO "${CGIT_URL%/}/${enc_ver}.tar.xz" && \
-    tar xf "${enc_ver}.tar.xz" && \
-    mv "${enc_ver}" cgit
+    ENC_VER="$(printf '%s' "$CGIT_VER" | sed -e 's/%/%25/g' -e 's:/:%2F:g')" && \
+    ENC_VER_DASH="$(printf '%s' "$CGIT_VER" | sed -e 's/%/%25/g' -e 's:/:-:g')" && \
+    curl -fL "${CGIT_URL%/}/${ENC_VER}.tar.xz" -o "${ENC_VER_DASH}.tar.xz" && \
+    tar xvf "${ENC_VER_DASH}.tar.xz" && \
+    mv "${CGIT_VER}" cgit
 
 WORKDIR /usr/src/cgit
 
