@@ -2,6 +2,9 @@ name: release
 
 on:
   workflow_dispatch:
+    branches:
+      - master
+      - dev
     inputs:
       branch:
         description: cgit branch
