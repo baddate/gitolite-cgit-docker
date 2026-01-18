@@ -4,7 +4,8 @@
 FROM alpine:3.22 AS cgit_builder
 LABEL stage=cgit_builder
 
-ARG CGIT_SNAPSHOT=cgit-master
+ARG CGIT_VER=cgit-master
+ARG CGIT_URL=https://git.zx2c4.com/cgit/snapshot
 ARG GIT_VER=2.46.0
 
 # Install build tools and development libraries
@@ -20,9 +21,11 @@ RUN apk add --no-cache \
 
 WORKDIR /usr/src
 
-RUN curl -LO "https://git.zx2c4.com/cgit/snapshot/${CGIT_SNAPSHOT}.tar.xz" && \
-    tar xf "${CGIT_SNAPSHOT}.tar.xz" && \
-    mv "${CGIT_SNAPSHOT}" cgit
+RUN set -eux && \
+    enc_ver="$(printf '%s' "$CGIT_VER" | sed -e 's/%/%25/g' -e 's:/:%%2F:g')" && \
+    curl -LO "${CGIT_URL%/}/${enc_ver}.tar.xz" && \
+    tar xf "${enc_ver}.tar.xz" && \
+    mv "${enc_ver}" cgit
 
 WORKDIR /usr/src/cgit
 
@@ -35,7 +38,15 @@ RUN set -eux && \
       LUA_PKGCONFIG=lua5.3 \
       GIT_VER=${GIT_VER}
 
-RUN strip cgit
+RUN set -eux; \
+    before_bytes="$(stat -c '%s' cgit)"; \
+    echo "cgit size before strip: ${before_bytes} bytes"; \
+    ls -lh cgit; \
+    strip cgit; \
+    after_bytes="$(stat -c '%s' cgit)"; \
+    echo "cgit size after strip:  ${after_bytes} bytes"; \
+    echo "cgit size reduced:     $((before_bytes - after_bytes)) bytes"; \
+    ls -lh cgit
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
