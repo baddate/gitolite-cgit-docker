@@ -313,6 +313,8 @@ markdown.markdownFromFile(
         "markdown.extensions.fenced_code",
         "markdown.extensions.codehilite",
         "markdown.extensions.tables",
+        "markdown.extensions.admonition",
+        "markdown.extensions.sane_lists",
         TocExtension(anchorlink=True)],
     extension_configs={
         "markdown.extensions.codehilite": {"css_class": "highlight"}})
