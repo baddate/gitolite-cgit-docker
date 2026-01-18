@@ -102,6 +102,7 @@ COPY entrypoint.sh /
 
 # Set proper permissions to match make install
 RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
+    chown -R root:nginx /var/www/htdocs/cgit && \
     chmod 0644 /var/www/htdocs/cgit/cgit.css \
                /var/www/htdocs/cgit/cgit.png \
                /var/www/htdocs/cgit/cgit.js \
