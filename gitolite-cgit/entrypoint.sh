@@ -326,6 +326,9 @@ if [ ! -f /var/lib/git/.gitolite.rc ]; then
     POST_GIT => [
         'auto-default-branch',
     ],
+    POST_CREATE => [
+        'set-master-branch',
+    ],
 
 );
 
