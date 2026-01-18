@@ -113,11 +113,11 @@ RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
 RUN ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi
 
 # Set permissions for user-supplied scripts
-RUN chmod +x /usr/lib/cgit/filters/html-converters/md2html \
+RUN chmod u+x /usr/lib/cgit/filters/html-converters/md2html \
     /usr/lib/cgit/filters/syntax-highlighting.py \
-    /usr/lib/gitolite/triggers/auto-default-branch \
-    /usr/lib/gitolite/triggers/set-master-branch \
-    /entrypoint.sh
+    /entrypoint.sh && \
+    chmod a+x /usr/lib/gitolite/triggers/auto-default-branch \
+    /usr/lib/gitolite/triggers/set-master-branch
 
 # Volumes for persistence
 VOLUME ["/etc/ssh", "/var/lib/git"]
