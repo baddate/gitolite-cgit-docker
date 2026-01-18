@@ -58,6 +58,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Normalize ref name
+        run: |
+          TAG=$(echo "${{ github.ref_name }}" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed 's#[^a-z0-9_.-]#-#g')
+          echo "TAG=$TAG" >> $GITHUB_ENV
+
       - name: Build Docker image
         id: build-image
         uses: docker/build-push-action@v6
@@ -74,7 +81,7 @@ jobs:
           no-cache: true
           tags: |
             ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}:${{ env.TAG }}
             ghcr.io/${{ github.repository }}:${{ steps.short_sha.outputs.sha_short }}
 
       - name: Run Trivy scan
@@ -99,5 +106,5 @@ jobs:
           no-cache: false
           tags: |
             ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}:${{ env.TAG }}
             ghcr.io/${{ github.repository }}:${{ steps.short_sha.outputs.sha_short }}
