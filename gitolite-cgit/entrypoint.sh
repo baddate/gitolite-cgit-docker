@@ -627,8 +627,9 @@ fi
 /usr/sbin/sshd -e
 
 # launch fcgiwrap via spawn-fcgi, port 1234
-spawn-fcgi -s /run/fcgiwrap/fcgiwrap.socket -f /usr/bin/fcgiwrap
-chmod 660 /run/fcgiwrap/fcgiwrap.socket
+mkdir -p /run/fcgiwrap
+chown nginx:nginx /run/fcgiwrap
+spawn-fcgi -s /run/fcgiwrap/fcgiwrap.socket -u nginx -g nginx /usr/sbin/fcgiwrap &
 
 # fix permissions gitolite
 chown git:git /var/lib/git
