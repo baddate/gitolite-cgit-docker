@@ -31,7 +31,7 @@ HostKey /etc/ssh/ssh_host_ed25519_key
 
 #LoginGraceTime 2m
 PermitRootLogin no
-#StrictModes yes
+StrictModes yes
 MaxAuthTries 3
 #MaxSessions 10
 
@@ -372,6 +372,7 @@ if [ ! -f /etc/nginx/http.d/cgit.conf ]; then
 
   # add web user (nginx) to gitolite group (git)
   adduser nginx git
+  adduser fcgiwrap git
 
   ## Config cgit interface
   cat > /etc/cgitrc <<- EOF
@@ -630,21 +631,34 @@ fi
 /usr/sbin/sshd -e
 
 # launch fcgiwrap via spawn-fcgi, port 1234
-mkdir -p /run/fcgiwrap
-chown nginx:nginx /run/fcgiwrap
-spawn-fcgi -s /run/fcgiwrap/fcgiwrap.socket -u nginx -g nginx /usr/sbin/fcgiwrap &
+install -d -m 0750 -o fcgiwrap -g nginx /run/fcgiwrap
+spawn-fcgi -s /run/fcgiwrap/fcgiwrap.socket -u fcgiwrap -g git -U fcgiwrap -G nginx -M 0660 -f /usr/bin/fcgiwrap &
 
 # fix permissions gitolite
-chown git:git /var/lib/git
-chown git:git -R /var/lib/git
-chmod 700 /var/lib/git
+stamp_dir=/var/lib/git/.gitolite
+stamp_file="$stamp_dir/.permissions-fixed"
+if [ "${FORCE_CHOWN:-}" = "1" ] || [ ! -f "$stamp_file" ]; then
+  chown git:git /var/lib/git
+  chown git:git -R /var/lib/git
+  mkdir -p "$stamp_dir"
+  chown git:git "$stamp_dir"
+  touch "$stamp_file"
+  chown git:git "$stamp_file"
+fi
+chmod 750 /var/lib/git
 chown git:git /var/lib/git/.gitolite.rc
 chmod 640 /var/lib/git/.gitolite.rc
 
-git config --global init.defaultBranch master
+if [ -d /var/lib/git/.ssh ]; then
+  chown -R git:git /var/lib/git/.ssh
+  chmod 700 /var/lib/git/.ssh
+  if [ -f /var/lib/git/.ssh/authorized_keys ]; then
+    chmod 600 /var/lib/git/.ssh/authorized_keys
+  fi
+fi
 
 # Start git-daemon
-git daemon --detach --reuseaddr --base-path=/var/lib/git/repositories --listen=0.0.0.0 --informative-errors --verbose
+(umask 0027; git daemon --detach --reuseaddr --strict-paths --base-path=/var/lib/git/repositories --listen=0.0.0.0 --user=git --group=git --export-all --enable=upload-pack --disable=receive-pack --disable=upload-archive --informative-errors --verbose)
 
 # Start nginx
 exec nginx -g "daemon off;"
