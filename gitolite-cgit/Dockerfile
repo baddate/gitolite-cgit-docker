@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Build cgit from source (following official README with git clone)
 # -----------------------------------------------------------------------------
-FROM alpine:3.22 AS cgit_builder
+FROM alpine:3.23 AS cgit_builder
 LABEL stage=cgit_builder
 
 ARG CGIT_VER=cgit-master
@@ -52,7 +52,7 @@ RUN set -eux; \
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
 # -----------------------------------------------------------------------------
-FROM alpine:3.22
+FROM alpine:3.23
 
 # Install runtime dependencies
 RUN set -e && \
