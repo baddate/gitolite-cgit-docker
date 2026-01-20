@@ -664,7 +664,7 @@ if [ -d /var/lib/git/.ssh ]; then
 fi
 
 # Start git-daemon
-(umask 0027; git daemon --detach --reuseaddr --strict-paths --base-path=/var/lib/git/repositories --listen=0.0.0.0 --user=git --group=git --export-all --enable=upload-pack --disable=receive-pack --disable=upload-archive --informative-errors --verbose)
+(umask 0027; git daemon --detach --syslog --reuseaddr --base-path=/var/lib/git/repositories --listen=0.0.0.0 --user=git --group=git --enable=upload-pack --disable=receive-pack --disable=upload-archive --informative-errors --verbose)
 
 # Start nginx
 exec nginx -g "daemon off;"
