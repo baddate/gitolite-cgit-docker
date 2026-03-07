@@ -4,9 +4,9 @@
 FROM alpine:3.23 AS cgit_builder
 LABEL stage=cgit_builder
 
-ARG CGIT_VER=cgit-master
+ARG CGIT_VER=cgit-1.3
 ARG CGIT_URL=https://git.zx2c4.com/cgit/snapshot
-ARG GIT_VER=2.46.0
+ARG GIT_VER=2.53.0
 
 # Install build tools and development libraries
 # Dependencies based on cgit README: libzip, libcrypto (OpenSSL), libssl (OpenSSL)
