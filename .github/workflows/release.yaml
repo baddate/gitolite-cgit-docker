@@ -90,15 +90,14 @@ jobs:
             ghcr.io/${{ github.repository }}:${{ steps.short_sha.outputs.sha_short }}
 
       - name: Run Trivy scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           image-ref: "ghcr.io/${{ github.repository }}:latest"
           format: "table"
           exit-code: "1"
           ignore-unfixed: true
-          vuln-type: "os"
+          vuln-type: "os,library"
           severity: "CRITICAL,HIGH"
-          cache: "false"
 
       - name: Push Docker image
         uses: docker/build-push-action@v6
