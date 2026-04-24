@@ -4,6 +4,23 @@ services:
     container_name: gitolite-cgit
     env_file:
       - .env
+    mem_limit: 512m
+    restart: always
+    # Security: drop all capabilities, add only needed ones
+    cap_drop:
+      - ALL
+    cap_add:
+      - CAP_NET_BIND_SERVICE # nginx binds port 80
+      - CAP_CHOWN # gitolite repo operations
+      - CAP_SETGID # gitolite user management
+      - CAP_SETUID # gitolite user management
+    # Security: read-only root filesystem with writable tmpfs paths
+    read_only: true
+    tmpfs:
+      - /run
+      - /tmp
+      - /var/cache/cgit
+      - /var/log/nginx
     volumes:
       - git:/etc/ssh
       - git:/var/lib/git
