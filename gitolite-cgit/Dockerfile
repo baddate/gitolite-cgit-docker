@@ -12,13 +12,13 @@ ARG GIT_VER=2.53.0
 # Install build tools and development libraries
 # Dependencies based on cgit README: libzip, libcrypto (OpenSSL), libssl (OpenSSL)
 RUN apk add --no-cache \
-    build-base \
-    openssl-dev \
-    zlib-dev \
-    libzip-dev \
-    lua5.3-dev \
-    pkgconfig \
-    curl
+    build-base=0.5-r3 \
+    openssl-dev=3.5.6-r0 \
+    zlib-dev=1.3.2-r0 \
+    libzip-dev=1.11.4-r1 \
+    lua5.3-dev=5.3.6-r6 \
+    pkgconf=2.5.1-r0 \
+    curl=8.17.0-r1
 
 WORKDIR /usr/src
 
@@ -63,29 +63,29 @@ FROM alpine:3.23 AS runtime
 RUN set -e && \
     apk add --no-cache \
         # Runtime essentials
-        tini \
-        openssl \
-        zlib \
-        lua5.3 \
+        tini=0.19.0-r3 \
+        openssl=3.5.6-r0 \
+        zlib=1.3.2-r0 \
+        lua5.3=5.3.6-r6 \
         # Git & gitolite stack
-        git \
-        gitolite \
-        git-daemon \
-        openssh \
+        git=2.52.0-r0 \
+        gitolite=3.6.14-r0 \
+        git-daemon=2.52.0-r0 \
+        openssh=10.2_p1-r0 \
         # Web server & CGI
-        nginx \
-        fcgiwrap \
-        spawn-fcgi \
+        nginx=1.28.3-r0 \
+        fcgiwrap=1.1.0-r9 \
+        spawn-fcgi=1.6.6-r0 \
         # Syntax highlighting (python3 + pygments + markdown)
-        python3 \
-        py3-markdown \
-        py3-pygments \
+        python3=3.12.13-r0 \
+        py3-markdown=3.10.0-r0 \
+        py3-pygments=2.19.2-r0 \
         # Compression tools (cgit snapshots)
-        lzip \
-        xz \
-        zstd \
-        gzip \
-        bzip2 && \
+        lzip=1.25-r0 \
+        xz=5.8.2-r0 \
+        zstd=1.5.7-r2 \
+        gzip=1.14-r2 \
+        bzip2=1.0.8-r6 && \
     mkdir -p /run/nginx /var/www/htdocs/cgit /usr/lib/cgit/filters /usr/local/lib/cgit && \
     rm -rf /var/cache/apk/* /tmp/*
 
