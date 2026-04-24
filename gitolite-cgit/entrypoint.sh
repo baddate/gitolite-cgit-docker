@@ -555,6 +555,10 @@ EOF
 
   # Nginx configuration
   rm -f /etc/nginx/http.d/default.conf || true
+  # Comment out the "user" directive in the main nginx.conf — the master
+  # process already runs as the nginx user, so this directive is ignored
+  # and produces an annoying but harmless warning.
+  sed -i 's/^user /#user /' /etc/nginx/nginx.conf 2>/dev/null || true
   cat > /etc/nginx/http.d/cgit.conf <<- EOF
 server {
     listen 80 default_server;
