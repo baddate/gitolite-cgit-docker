@@ -133,6 +133,18 @@ RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
     chmod a+x /usr/lib/gitolite/triggers/auto-default-branch \
         /usr/lib/gitolite/triggers/set-master-branch
 
+# Create dedicated runtime user (for nginx foreground process)
+# Add to nginx group so cgit user can access fcgiwrap socket
+RUN adduser -D -u 1001 cgit && adduser cgit nginx
+
+# Install su-exec for privilege dropping in entrypoint
+RUN apk add --no-cache su-exec=0.3-r0
+
+# Remove setuid/setgid bits — not needed in container context
+# EXCLUDE su-exec: it needs setuid to drop privileges at runtime
+RUN find / \( -path /usr/sbin/su-exec -o -path /sbin/su-exec \) -prune \
+    -o -perm /6000 -type f -exec chmod a-s {} \; 2>/dev/null || true
+
 # Volumes for persistence
 VOLUME ["/etc/ssh", "/var/lib/git"]
 
