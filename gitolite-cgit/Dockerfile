@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 # -----------------------------------------------------------------------------
 # Stage 1: Build cgit from source (following official README with git clone)
 # -----------------------------------------------------------------------------
@@ -21,12 +22,16 @@ RUN apk add --no-cache \
 
 WORKDIR /usr/src
 
-RUN set -eux && \
+RUN --mount=type=cache,target=/usr/src/cgit-archive,sharing=locked \
+    set -eux && \
     ENC_VER="$(printf '%s' "$CGIT_VER" | sed -e 's/%/%25/g' -e 's:/:%2F:g')" && \
     ENC_VER_DASH="$(printf '%s' "$CGIT_VER" | sed -e 's/%/%25/g' -e 's:/:-:g')" && \
-    curl -fL "${CGIT_URL%/}/${ENC_VER}.tar.xz" -o "${ENC_VER_DASH}.tar.xz" && \
-    tar xvf "${ENC_VER_DASH}.tar.xz" && \
-    mv "${CGIT_VER}" cgit
+    ARCHIVE="/usr/src/cgit-archive/${ENC_VER_DASH}.tar.xz" && \
+    if [ ! -f "$ARCHIVE" ]; then \
+        curl -fL "${CGIT_URL%/}/${ENC_VER}.tar.xz" -o "$ARCHIVE"; \
+    fi && \
+    tar xf "$ARCHIVE" -C /usr/src && \
+    mv "/usr/src/${CGIT_VER}" /usr/src/cgit
 
 WORKDIR /usr/src/cgit
 
@@ -52,55 +57,67 @@ RUN set -eux; \
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
 # -----------------------------------------------------------------------------
-FROM alpine:3.23
+FROM alpine:3.23 AS runtime
 
 # Install runtime dependencies
 RUN set -e && \
     apk add --no-cache \
+        # Runtime essentials
+        tini \
+        openssl \
+        zlib \
+        lua5.3 \
+        # Git & gitolite stack
         git \
         gitolite \
         git-daemon \
         openssh \
+        # Web server & CGI
         nginx \
         fcgiwrap \
         spawn-fcgi \
-        openssl \
-        zlib \
-        lua5.3 \
+        # Syntax highlighting (python3 + pygments + markdown)
         python3 \
         py3-markdown \
         py3-pygments \
+        # Compression tools (cgit snapshots)
         lzip \
         xz \
         zstd \
         gzip \
-        bzip2 \
-        tini && \
+        bzip2 && \
     mkdir -p /run/nginx /var/www/htdocs/cgit /usr/lib/cgit/filters /usr/local/lib/cgit && \
     rm -rf /var/cache/apk/* /tmp/*
 
-# Copy compiled binaries and static assets
+# -----------------------------------------------------------------------------
+# Layer ordering: COPY instructions grouped by change frequency (slowest first)
+# -----------------------------------------------------------------------------
+
+# 1. Compiler builder assets (slowest, only changes on cgit version bump)
 COPY --from=cgit_builder /usr/src/cgit/cgit /var/www/htdocs/cgit/cgit
 COPY --from=cgit_builder /usr/src/cgit/cgit.css /var/www/htdocs/cgit/cgit.css
 COPY --from=cgit_builder /usr/src/cgit/cgit.png /var/www/htdocs/cgit/cgit.png
 COPY --from=cgit_builder /usr/src/cgit/cgit.js /var/www/htdocs/cgit/cgit.js
 COPY --from=cgit_builder /usr/src/cgit/favicon.ico /var/www/htdocs/cgit/favicon.ico
 COPY --from=cgit_builder /usr/src/cgit/robots.txt /var/www/htdocs/cgit/robots.txt
-
 COPY --from=cgit_builder /usr/src/cgit/filters/ /usr/lib/cgit/filters/
 
-# Copy user-supplied scripts
+# 2. Custom themes (medium, changes when restyling)
 COPY cgit.css /var/www/htdocs/cgit/cgit.css
 COPY md2html /usr/lib/cgit/filters/html-converters/md2html
 COPY syntax-highlighting.py /usr/lib/cgit/filters/syntax-highlighting.py
 COPY catppuccin_mocha.py /usr/local/lib/cgit/catppuccin_mocha.py
 COPY catppuccin_macchiato.py /usr/local/lib/cgit/catppuccin_macchiato.py
 COPY catppuccin_latte.py /usr/local/lib/cgit/catppuccin_latte.py
+
+# 3. Gitolite triggers (medium)
 COPY auto-default-branch.sh /usr/lib/gitolite/triggers/auto-default-branch
 COPY set-master-branch.sh /usr/lib/gitolite/triggers/set-master-branch
+
+# 4. Entrypoint (fastest, changes most frequently)
 COPY entrypoint.sh /
 
-# Set proper permissions to match make install
+# Set permissions and symlinks
 RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
     chown -R root:nginx /var/www/htdocs/cgit && \
     chmod 0644 /var/www/htdocs/cgit/cgit.css \
@@ -108,22 +125,24 @@ RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
                /var/www/htdocs/cgit/cgit.js \
                /var/www/htdocs/cgit/favicon.ico \
                /var/www/htdocs/cgit/robots.txt && \
-    chmod -R 0755 /usr/lib/cgit/filters/
-
-RUN ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi
-
-# Set permissions for user-supplied scripts
-RUN chmod u+x /usr/lib/cgit/filters/html-converters/md2html \
-    /usr/lib/cgit/filters/syntax-highlighting.py \
-    /entrypoint.sh && \
+    chmod -R 0755 /usr/lib/cgit/filters/ && \
+    ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi && \
+    chmod u+x /usr/lib/cgit/filters/html-converters/md2html \
+        /usr/lib/cgit/filters/syntax-highlighting.py \
+        /entrypoint.sh && \
     chmod a+x /usr/lib/gitolite/triggers/auto-default-branch \
-    /usr/lib/gitolite/triggers/set-master-branch
+        /usr/lib/gitolite/triggers/set-master-branch
 
 # Volumes for persistence
 VOLUME ["/etc/ssh", "/var/lib/git"]
 
 # Expose ports
-EXPOSE 22 80 9418
+#   SSH (gitolite)
+EXPOSE 22
+#   HTTP (cgit web UI)
+EXPOSE 80
+#   Git daemon protocol (anonymous fetch)
+EXPOSE 9418
 
 # Working directory
 WORKDIR /var/lib/git
