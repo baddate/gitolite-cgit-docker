@@ -116,28 +116,26 @@ sh bootstrap.sh
 3. Create `docker-compose.yml`:
 
 ```yml
-version: '3'
-
 services:
   app:
     image: rusian/gitolite-cgit
     container_name: gitolite-cgit
     env_file: config.env
     volumes:
-      - git:/etc/ssh
+      - ssh:/etc/ssh
       - git:/var/lib/git
     ports:
       - 22:22
       - 80:80
       - 9418:9418
-    tty: true
 volumes:
+  ssh:
   git:
 ```
 Then power-on your container:
 
 ```console
-$ docker-compose up -d
+$ docker compose up -d
 ```
 
 ### Customize cgit configuration
@@ -152,23 +150,21 @@ docker cp gitolite-cgit:/etc/cgitrc .
 Modify the `docker-compose.yml`:
 
 ```yml
-version: '3'
-
 services:
   app:
     image: rusian/gitolite-cgit
     container_name: gitolite-cgit
     env_file: config.env
     volumes:
-      - git:/etc/ssh
+      - ssh:/etc/ssh
       - git:/var/lib/git
       - ./cgitrc:/etc/cgitrc
     ports:
       - 22:22
       - 80:80
       - 9418:9418
-    tty: true
 volumes:
+  ssh:
   git:
 ```
 
