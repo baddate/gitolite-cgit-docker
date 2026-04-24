@@ -636,8 +636,10 @@ fi
 # Start sshd as detach, log to stderr (-e)
 /usr/sbin/sshd -e
 
-# launch fcgiwrap via spawn-fcgi, port 1234
+# Create runtime directories (needed for tmpfs/read-only rootfs)
 install -d -m 0750 -o fcgiwrap -g nginx /run/fcgiwrap
+install -d -m 0755 -o nginx -g nginx /run/nginx
+install -d -m 0755 -o cgit -g nginx /var/log/nginx
 spawn-fcgi -s /run/fcgiwrap/fcgiwrap.socket -u fcgiwrap -g git -U fcgiwrap -G nginx -M 0660 -f /usr/bin/fcgiwrap &
 
 # fix permissions gitolite
@@ -666,5 +668,5 @@ fi
 # Start git-daemon
 (umask 0027; git daemon --detach --syslog --reuseaddr --base-path=/var/lib/git/repositories --listen=0.0.0.0 --user=git --group=git --enable=upload-pack --disable=receive-pack --disable=upload-archive --informative-errors --verbose)
 
-# Start nginx
-exec nginx -g "daemon off;"
+# Drop privileges to cgit user for the foreground nginx process
+exec su-exec cgit nginx -g "daemon off;"
