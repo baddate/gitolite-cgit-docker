@@ -640,6 +640,12 @@ fi
 install -d -m 0750 -o fcgiwrap -g nginx /run/fcgiwrap
 install -d -m 0755 -o nginx -g nginx /run/nginx
 install -d -m 0755 -o cgit -g nginx /var/log/nginx
+
+# Create nginx temp directories writable by the cgit user (which runs nginx)
+# Without these, nginx running as cgit fails with "mkdir() Permission denied"
+for _d in client_body fastcgi proxy uwsgi scgi; do
+    install -d -m 0755 -o cgit -g nginx "/var/lib/nginx/tmp/$_d"
+done
 spawn-fcgi -s /run/fcgiwrap/fcgiwrap.socket -u fcgiwrap -g git -U fcgiwrap -G nginx -M 0660 -f /usr/bin/fcgiwrap &
 
 # fix permissions gitolite
