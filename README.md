@@ -121,6 +121,7 @@ services:
     image: rusian/gitolite-cgit
     container_name: gitolite-cgit
     env_file: config.env
+    restart: unless-stopped
     volumes:
       - ssh:/etc/ssh
       - git:/var/lib/git
@@ -128,6 +129,21 @@ services:
       - 22:22
       - 80:80
       - 9418:9418
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CAP_NET_BIND_SERVICE
+      - CAP_CHOWN
+      - CAP_SETGID
+      - CAP_SETUID
+    read_only: true
+    tmpfs:
+      - /run
+      - /tmp
+      - /var/cache/cgit
+      - /var/log/nginx
 volumes:
   ssh:
   git:
@@ -155,6 +171,7 @@ services:
     image: rusian/gitolite-cgit
     container_name: gitolite-cgit
     env_file: config.env
+    restart: unless-stopped
     volumes:
       - ssh:/etc/ssh
       - git:/var/lib/git
@@ -163,6 +180,21 @@ services:
       - 22:22
       - 80:80
       - 9418:9418
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CAP_NET_BIND_SERVICE
+      - CAP_CHOWN
+      - CAP_SETGID
+      - CAP_SETUID
+    read_only: true
+    tmpfs:
+      - /run
+      - /tmp
+      - /var/cache/cgit
+      - /var/log/nginx
 volumes:
   ssh:
   git:
