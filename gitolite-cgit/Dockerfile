@@ -6,7 +6,7 @@ FROM alpine:3.23 AS cgit_builder
 LABEL stage=cgit_builder
 
 # Alpine uses busybox ash (not POSIX sh) — needed for pipefail support
-SHELL ["/bin/ash", "-o", "pipefail"]
+SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 
 ARG CGIT_VER=cgit-1.3
 ARG CGIT_URL=https://git.zx2c4.com/cgit/snapshot
