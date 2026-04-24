@@ -59,6 +59,21 @@ RUN set -eux; \
 # -----------------------------------------------------------------------------
 FROM alpine:3.23 AS runtime
 
+# Build arguments for OCI labels
+ARG BUILD_DATE
+ARG REVISION
+ARG VERSION=latest
+
+# OCI image labels for provenance tracking
+LABEL org.opencontainers.image.created=${BUILD_DATE}
+LABEL org.opencontainers.image.revision=${REVISION}
+LABEL org.opencontainers.image.version=${VERSION}
+LABEL org.opencontainers.image.title="gitolite-cgit"
+LABEL org.opencontainers.image.description="Docker image with cgit in dark-mode and gitolite on Alpine"
+LABEL org.opencontainers.image.url="https://hub.docker.com/r/rusian/gitolite-cgit"
+LABEL org.opencontainers.image.source="https://github.com/baddate/gitolite-cgit-docker"
+LABEL org.opencontainers.image.licenses="GPL-3.0"
+
 # Install runtime dependencies
 RUN set -e && \
     apk add --no-cache \
@@ -158,6 +173,10 @@ EXPOSE 9418
 
 # Working directory
 WORKDIR /var/lib/git
+
+# Health check: verify nginx/cgit responds on port 80
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
 
 # Use tini as init for signal handling
 ENTRYPOINT ["/sbin/tini", "--", "/entrypoint.sh"]
