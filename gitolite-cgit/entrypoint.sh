@@ -560,6 +560,13 @@ server {
     listen 80 default_server;
     server_name localhost;
 
+    # Use tmpfs-backed paths so nginx works under read-only rootfs
+    client_body_temp_path /tmp/nginx/client_body 1 2;
+    fastcgi_temp_path /tmp/nginx/fastcgi 1 2;
+    proxy_temp_path /tmp/nginx/proxy 1 2;
+    uwsgi_temp_path /tmp/nginx/uwsgi 1 2;
+    scgi_temp_path /tmp/nginx/scgi 1 2;
+
     # ------------------------------
     # Logs (change to real paths if needed)
     # ------------------------------
