@@ -23,7 +23,7 @@ RUN apk add --no-cache \
 WORKDIR /usr/src
 
 RUN --mount=type=cache,target=/usr/src/cgit-archive,sharing=locked \
-    set -eux && \
+    set -euxo pipefail && \
     ENC_VER="$(printf '%s' "$CGIT_VER" | sed -e 's/%/%25/g' -e 's:/:%2F:g')" && \
     ENC_VER_DASH="$(printf '%s' "$CGIT_VER" | sed -e 's/%/%25/g' -e 's:/:-:g')" && \
     ARCHIVE="/usr/src/cgit-archive/${ENC_VER_DASH}.tar.xz" && \
