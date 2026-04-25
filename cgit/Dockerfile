@@ -166,8 +166,6 @@ RUN rm -rf \
 ENV PATH="/usr/local/bin:/usr/local/libexec/git-core:$PATH"
 ENV GIT_EXEC_PATH=/usr/local/libexec/git-core
 
-RUN sed -i 's/^user/#user/' /etc/nginx/nginx.conf
-
 COPY --from=builder /usr/src/cgit/cgit /var/www/htdocs/cgit/cgit
 COPY --from=builder /usr/src/cgit/cgit.css /var/www/htdocs/cgit/cgit.css
 COPY --from=builder /usr/src/cgit/cgit.png /var/www/htdocs/cgit/cgit.png
