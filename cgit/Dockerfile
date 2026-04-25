@@ -180,7 +180,7 @@ COPY catppuccin_mocha.py     /usr/local/lib/cgit/catppuccin_mocha.py
 COPY catppuccin_macchiato.py /usr/local/lib/cgit/catppuccin_macchiato.py
 COPY catppuccin_latte.py     /usr/local/lib/cgit/catppuccin_latte.py
 COPY cgitrc.template         /usr/local/share/cgitrc.template
-COPY nginx-cgit.conf         /usr/local/share/nginx-cgit.conf
+COPY nginx-cgit.conf         /etc/nginx/http.d/cgit.conf
 
 RUN rm -f /etc/nginx/http.d/default.conf
 
