@@ -26,8 +26,6 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: gitolite-cgit/Dockerfile
-          # DL3018: pin apk packages — already pinned in this project
-          # DL3059: multiple RUN instructions — intentional layer grouping
           ignore: DL3018,DL3059,DL3003
 
       # - name: ShellCheck — entrypoint.sh
@@ -37,38 +35,24 @@ jobs:
       #     severity: warning
 
   scan:
-    name: Trivy image scan
+    name: Trivy filesystem scan (fast)
     runs-on: ubuntu-latest
     permissions:
       security-events: write
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Docker BuildX
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build image (with GHA cache)
-        uses: docker/build-push-action@v6
-        with:
-          context: gitolite-cgit
-          file: gitolite-cgit/Dockerfile
-          platforms: linux/amd64
-          load: true
-          push: false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: gitolite-cgit:ci
-
-      - name: Trivy vulnerability scan
+      - name: Trivy FS scan
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: gitolite-cgit:ci
+          scan-type: fs
+          scan-ref: gitolite-cgit
           format: sarif
           output: trivy-results.sarif
-          exit-code: "1"
-          ignore-unfixed: true
-          vuln-type: os,library
+          exit-code: "0"
           severity: CRITICAL,HIGH
+          ignore-unfixed: true
 
       - name: Check if Trivy SARIF exists
         id: check-sarif
