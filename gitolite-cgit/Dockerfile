@@ -10,7 +10,7 @@ SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 
 ARG CGIT_VER=cgit-1.3
 ARG CGIT_URL=https://git.zx2c4.com/cgit/snapshot
-ARG GIT_VER=2.52.0
+ARG GIT_VER=2.53.0
 
 # Install build tools and development libraries
 # Dependencies based on cgit README: libzip, libcrypto (OpenSSL), libssl (OpenSSL)
@@ -31,7 +31,7 @@ RUN --mount=type=cache,target=/usr/src/cgit-archive,sharing=locked \
     ENC_VER_DASH="$(printf '%s' "$CGIT_VER" | sed -e 's/%/%25/g' -e 's:/:-:g')" && \
     ARCHIVE="/usr/src/cgit-archive/${ENC_VER_DASH}.tar.xz" && \
     if [ ! -f "$ARCHIVE" ]; then \
-        curl -fL "${CGIT_URL%/}/${ENC_VER}.tar.xz" -o "$ARCHIVE"; \
+        curl -fSL --retry 3 "${CGIT_URL%/}/${ENC_VER}.tar.xz" -o "$ARCHIVE"; \
     fi && \
     tar xf "$ARCHIVE" -C /usr/src && \
     mv "/usr/src/${CGIT_VER}" /usr/src/cgit
@@ -39,8 +39,16 @@ RUN --mount=type=cache,target=/usr/src/cgit-archive,sharing=locked \
 WORKDIR /usr/src/cgit
 
 # Compile cgit with build options optimized for Alpine
-RUN set -eux && \
-    make get-git GIT_VER=${GIT_VER} && \
+# Cache git source tarball to avoid re-downloading from kernel.org every build
+RUN --mount=type=cache,target=/usr/src/git-archive,sharing=locked \
+    set -eux && \
+    GIT_TGZ="/usr/src/git-archive/git-${GIT_VER}.tar.xz" && \
+    if [ ! -f "$GIT_TGZ" ]; then \
+        curl -fSL --retry 3 "https://www.kernel.org/pub/software/scm/git/git-${GIT_VER}.tar.xz" -o "$GIT_TGZ"; \
+    fi && \
+    tar xf "$GIT_TGZ" -C /usr/src/cgit && \
+    rm -rf git && \
+    mv "git-${GIT_VER}" git && \
     make all \
       NO_GETTEXT=YesPlease \
       NO_REGEX=NeedsStartEnd \
