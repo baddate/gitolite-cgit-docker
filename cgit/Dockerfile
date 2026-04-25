@@ -23,7 +23,6 @@ RUN apk add --no-cache \
     lua5.3-dev \
     pkgconf \
     curl \
-    curl-dev \
     expat-dev
 
 WORKDIR /usr/src
@@ -48,14 +47,15 @@ RUN --mount=type=cache,id=cgit-cache,target=/usr/src/cgit-archive,sharing=locked
 ENV GIT_BUILD_OPTS="\
   NO_GETTEXT=YesPlease \
   NO_TCLTK=YesPlease \
+  NO_CURL=YesPlease \
   NO_REGEX=YesPlease \
   NO_PERL=YesPlease \
   NO_PYTHON=YesPlease \
   NO_INSTALL_HARDLINKS=YesPlease \
   INSTALL_SYMLINKS=1"
 
-ENV CFLAGS="-Os -fomit-frame-pointer -flto=auto"
-ENV LDFLAGS="-Wl,--as-needed -flto=auto"
+ENV CFLAGS="-Os -fomit-frame-pointer -ffunction-sections -fdata-sections -flto=auto"
+ENV LDFLAGS="-Wl,--gc-sections -Wl,--as-needed -flto=auto"
 
 RUN --mount=type=cache,id=git-cache,target=/usr/src/git-archive,sharing=locked \
     set -eux && \
@@ -146,8 +146,15 @@ RUN set -e && \
 # -----------------------------------------------------------------------------
 
 # 1. Compiler builder assets (slowest, only changes on cgit version bump)
-COPY --from=builder /usr/local/bin/git /usr/local/bin/git
-COPY --from=builder /usr/local/libexec/git-core /usr/local/libexec/git-core
+# Only copy required git plumbing
+COPY --from=builder /usr/local/bin/git /usr/local/bin/
+
+COPY --from=builder /usr/local/libexec/git-core/git-cat-file /usr/local/libexec/git-core/
+COPY --from=builder /usr/local/libexec/git-core/git-rev-list /usr/local/libexec/git-core/
+COPY --from=builder /usr/local/libexec/git-core/git-rev-parse /usr/local/libexec/git-core/
+COPY --from=builder /usr/local/libexec/git-core/git-diff-tree /usr/local/libexec/git-core/
+COPY --from=builder /usr/local/libexec/git-core/git-for-each-ref /usr/local/libexec/git-core/
+COPY --from=builder /usr/local/libexec/git-core/git-read-tree /usr/local/libexec/git-core/
 
 RUN rm -rf \
   /usr/local/libexec/git-core/git-http-* \
