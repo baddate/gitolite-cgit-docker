@@ -24,7 +24,7 @@ RUN apk add --no-cache \
     lua5.3-dev=5.3.6-r6 \
     pkgconf=2.5.1-r0 \
     curl=8.17.0-r1 \
-    libcurl=8.17.0-r1 \
+    curl-dev=8.17.0-r1 \
     perl=5.42.2-r0 \
     expat-dev=2.7.5-r0
 
