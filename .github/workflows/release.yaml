@@ -14,7 +14,7 @@ on:
       version:
         description: git version (must match Alpine package)
         required: false
-        default: "2.52.0"
+        default: "2.53.0"
   schedule:
     - cron: "0 0 * * 5"
   push:
@@ -29,7 +29,7 @@ env:
   IMAGE: ${{ github.repository }}
   CGIT_VER: ${{ inputs.branch || '1.3' }}
   CGIT_URL: ${{ inputs.url || 'https://git.zx2c4.com/cgit' }}
-  GIT_VER: ${{ inputs.version || '2.52.0' }}
+  GIT_VER: ${{ inputs.version || '2.53.0' }}
 
 jobs:
   build-push:
