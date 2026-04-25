@@ -22,9 +22,9 @@ env:
   REGISTRY: ghcr.io
   IMAGE: ${{ github.repository }}-cgit
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  CGIT_VER: ${{ inputs.cgit_ver || '1.3' }}
-  CGIT_URL: ${{ inputs.cgit_url || 'https://git.zx2c4.com/cgit' }}
-  GIT_VER: ${{ inputs.git_ver || '2.53.0' }}
+  CGIT_VER: ${{ inputs.cgit_ver || vars.CGIT_VER || '1.3' }}
+  CGIT_URL: ${{ inputs.cgit_url || vars.CGIT_URL || 'https://git.zx2c4.com/cgit' }}
+  GIT_VER: ${{ inputs.git_ver || vars.GIT_VER || '2.53.0' }}
 
 jobs:
   build:
