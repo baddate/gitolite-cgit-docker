@@ -7,4 +7,4 @@ SSH_KEY_NAME=$(whoami)
 sed -i.bak \
     -e "s#SSH_KEY=.*#SSH_KEY=${SSH_KEY}#g" \
     -e "s#SSH_KEY_NAME=.*#SSH_KEY_NAME=${SSH_KEY_NAME}#g" \
-    "$(dirname "$0")/config.env"
+    "$(dirname "$0")/.env"
