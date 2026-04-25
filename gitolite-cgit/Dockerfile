@@ -212,7 +212,7 @@ RUN adduser -D -u 1001 cgit && adduser cgit nginx && \
     adduser fcgiwrap git
 
 # Install su-exec for privilege dropping in entrypoint
-RUN apk add --no-cache su-exec=0.3
+RUN apk add --no-cache su-exec
 
 # Remove setuid/setgid bits — not needed in container context
 # EXCLUDE su-exec: it needs setuid to drop privileges at runtime
