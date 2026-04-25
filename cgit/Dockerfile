@@ -185,6 +185,7 @@ COPY catppuccin_macchiato.py /usr/local/lib/cgit/catppuccin_macchiato.py
 COPY catppuccin_latte.py /usr/local/lib/cgit/catppuccin_latte.py
 COPY cgitrc.template      /usr/local/share/cgitrc.template
 COPY nginx-cgit.conf      /usr/local/share/nginx-cgit.conf
+RUN rm -f /etc/nginx/http.d/default.conf
 
 # 3. Entrypoint (fastest, changes most frequently)
 COPY entrypoint.sh /
