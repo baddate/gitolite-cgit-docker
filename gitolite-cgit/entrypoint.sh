@@ -51,6 +51,8 @@ fi
 # ── nginx(tmpfs, rebuild everytime)──────────────────────────────────────────────────
 cp /usr/local/share/nginx-cgit.conf /etc/nginx/http.d/cgit.conf
 
+sed -i 's/^user/#user/' /etc/nginx/nginx.conf
+
 # ── Runtime dirs ──────────────────────────────────────────────────────────────
 mkdir -p /run/fcgiwrap        && chown fcgiwrap:nginx /run/fcgiwrap      && chmod 0750 /run/fcgiwrap
 mkdir -p /run/nginx           && chown nginx:nginx    /run/nginx         && chmod 0755 /run/nginx
