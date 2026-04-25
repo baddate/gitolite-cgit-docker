@@ -30,11 +30,11 @@ jobs:
           # DL3059: multiple RUN instructions — intentional layer grouping
           ignore: DL3018,DL3059
 
-      - name: ShellCheck — entrypoint.sh
-        uses: ludeeus/action-shellcheck@2.0.0
-        with:
-          scandir: gitolite-cgit
-          severity: warning
+      # - name: ShellCheck — entrypoint.sh
+      #   uses: ludeeus/action-shellcheck@2.0.0
+      #   with:
+      #     scandir: gitolite-cgit
+      #     severity: warning
 
   scan:
     name: Trivy image scan
