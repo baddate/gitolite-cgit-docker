@@ -651,6 +651,7 @@ fi
 install -d -m 0750 -o fcgiwrap -g nginx /run/fcgiwrap
 install -d -m 0755 -o nginx -g nginx /run/nginx
 install -d -m 0755 -o nginx -g nginx /var/log/nginx
+install -d -m 0755 -o nginx -g nginx /tmp/nginx
 
 spawn-fcgi -s /run/fcgiwrap/fcgiwrap.socket -u fcgiwrap -g git -U fcgiwrap -G nginx -M 0660 -f /usr/bin/fcgiwrap &
 
