@@ -48,6 +48,8 @@ RUN --mount=type=cache,id=cgit-cache,target=/usr/src/cgit-archive,sharing=locked
 # -----------------------------------------------------------------------------
 # git source + build (cache)
 # -----------------------------------------------------------------------------
+ENV GIT_BUILD_OPTS="NO_REGEX=NeedsStartEnd NO_GETTEXT=YesPlease NO_TCLTK=YesPlease NO_MSGFMT_EXT=YesPlease"
+
 RUN --mount=type=cache,id=git-cache,target=/usr/src/git-archive,sharing=locked \
     set -eux && \
     GIT_TGZ="/usr/src/git-archive/git-${GIT_VER}.tar.xz" && \
@@ -58,14 +60,8 @@ RUN --mount=type=cache,id=git-cache,target=/usr/src/git-archive,sharing=locked \
     fi && \
     tar xf "$GIT_TGZ" -C /usr/src && \
     cd "/usr/src/git-${GIT_VER}" && \
-    make prefix=/usr/local all \
-        NO_REGEX=NeedsStartEnd \
-        NO_GETTEXT=YesPlease \
-        NO_TCLTK=YesPlease \
-        NO_MSGFMT_EXT=YesPlease && \
-    make prefix=/usr/local install \
-        NO_TCLTK=YesPlease \
-        NO_MSGFMT_EXT=YesPlease
+    make prefix=/usr/local all $GIT_BUILD_OPTS && \
+    make prefix=/usr/local install $GIT_BUILD_OPTS
 
 # -----------------------------------------------------------------------------
 # build cgit
@@ -157,7 +153,7 @@ RUN echo"========list /usr/local=========" && ls /usr/local
 RUN ln -sf /usr/local/bin/git /usr/bin/git && \
     ln -sf /usr/local/bin/git-receive-pack /usr/bin/git-receive-pack && \
     ln -sf /usr/local/bin/git-upload-pack /usr/bin/git-upload-pack && \
-    ln -sf /usr/local/bin/git-shell /usr/bin/git-shell && \ 
+    ln -sf /usr/local/bin/git-shell /usr/bin/git-shell && \
     ln -sf /usr/local/libexec/git-core/git-daemon /usr/usr/bin/git-daemon 2>/dev/null || echo "=====no git-daemon======"
 
 COPY --from=cgit_builder /usr/src/cgit/cgit /var/www/htdocs/cgit/cgit
