@@ -1,7 +1,8 @@
 #!/usr/bin/env sh
+set -euo pipefail
 
 # Force security SSH parameters
-if [ -d /etc/ssh ]; then
+if [ ! -f /etc/ssh/sshd_config ]; then
   cat > /etc/ssh/sshd_config <<- EOF
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
