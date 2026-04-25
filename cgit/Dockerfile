@@ -18,7 +18,7 @@ RUN apk add --no-cache \
     build-base \
     openssl-dev \
     zlib-dev \
-    lua5.3-dev \
+    lua5.4-dev \
     pkgconf \
     curl \
     expat-dev
@@ -76,11 +76,11 @@ WORKDIR /usr/src/cgit
 
 RUN set -eux && \
     rm -rf git && \
-    ln -s "/usr/src/git-${GIT_VER}" git && \
+    cp -al "/usr/src/git-${GIT_VER}" git && \
     make all \
       NO_GETTEXT=YesPlease \
       NO_REGEX=NeedsStartEnd \
-      LUA_PKGCONFIG=lua5.3 \
+      LUA_PKGCONFIG=lua5.4 \
       GIT_VER=${GIT_VER}
 
 # FIX: merged strip + cleanup into one RUN layer
@@ -118,7 +118,7 @@ LABEL org.opencontainers.image.licenses="GPL-3.0"
 # py3-markdown kept — required by md2html filter
 RUN apk add --no-cache \
         tini \
-        lua5.3 \
+        lua5.4 \
         expat \
         nginx \
         fcgiwrap \
