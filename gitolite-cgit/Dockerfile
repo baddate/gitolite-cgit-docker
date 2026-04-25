@@ -46,7 +46,10 @@ RUN --mount=type=cache,target=/usr/src/git-archive,sharing=locked \
     if [ ! -f "$GIT_TGZ" ]; then \
         curl -fSL --retry 3 "https://www.kernel.org/pub/software/scm/git/git-${GIT_VER}.tar.xz" -o "$GIT_TGZ"; \
     fi && \
-    tar xf "$GIT_TGZ" -C /usr/src/cgit && \
+    tar xf "$GIT_TGZ" -C /usr/src && \
+    cd "/usr/src/git-${GIT_VER}" && \
+    make prefix=/usr/local all && \
+    make prefix=/usr/local install && \
     rm -rf git && \
     mv "git-${GIT_VER}" git && \
     make all \
@@ -94,9 +97,9 @@ RUN set -e && \
         zlib=1.3.2-r0 \
         lua5.3=5.3.6-r6 \
         # Git & gitolite stack
-        git=2.52.0-r0 \
+        # git=2.52.0-r0 \
+        # git-daemon=2.52.0-r0 \
         gitolite=3.6.14-r0 \
-        git-daemon=2.52.0-r0 \
         openssh=10.2_p1-r0 \
         # Web server & CGI
         nginx=1.28.3-r0 \
@@ -120,6 +123,10 @@ RUN set -e && \
 # -----------------------------------------------------------------------------
 
 # 1. Compiler builder assets (slowest, only changes on cgit version bump)
+# ---- COPY Git 2.53 ----
+COPY --from=cgit_builder /usr/local /usr/local
+ENV PATH="/usr/local/bin:$PATH"
+
 COPY --from=cgit_builder /usr/src/cgit/cgit /var/www/htdocs/cgit/cgit
 COPY --from=cgit_builder /usr/src/cgit/cgit.css /var/www/htdocs/cgit/cgit.css
 COPY --from=cgit_builder /usr/src/cgit/cgit.png /var/www/htdocs/cgit/cgit.png
