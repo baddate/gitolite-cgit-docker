@@ -187,6 +187,8 @@ COPY --from=cgit_builder /usr/local/lib/git-core                        /usr/loc
 ENV PATH="/usr/local/bin:/usr/local/libexec/git-core:$PATH"
 ENV GIT_EXEC_PATH=/usr/local/libexec/git-core
 
+RUN sed -i 's/^user/#user/' /etc/nginx/nginx.conf
+
 COPY --from=cgit_builder /usr/src/cgit/cgit /var/www/htdocs/cgit/cgit
 COPY --from=cgit_builder /usr/src/cgit/cgit.css /var/www/htdocs/cgit/cgit.css
 COPY --from=cgit_builder /usr/src/cgit/cgit.png /var/www/htdocs/cgit/cgit.png
