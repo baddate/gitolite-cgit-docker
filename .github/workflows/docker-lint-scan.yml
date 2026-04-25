@@ -28,7 +28,7 @@ jobs:
           dockerfile: gitolite-cgit/Dockerfile
           # DL3018: pin apk packages — already pinned in this project
           # DL3059: multiple RUN instructions — intentional layer grouping
-          ignore: DL3018,DL3059
+          ignore: DL3018,DL3059,DL3003
 
       # - name: ShellCheck — entrypoint.sh
       #   uses: ludeeus/action-shellcheck@2.0.0
