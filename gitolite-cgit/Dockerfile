@@ -26,6 +26,8 @@ RUN apk add --no-cache \
     curl=8.17.0-r1 \
     curl-dev=8.17.0-r1 \
     perl=5.42.2-r0 \
+    perl-utils=5.42.2-r0 \
+    perl-dev=5.42.2-r0 \
     expat-dev=2.7.5-r0
 
 WORKDIR /usr/src
