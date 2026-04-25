@@ -14,6 +14,7 @@ ARG CGIT_VER=cgit-1.3
 ARG CGIT_URL=https://git.zx2c4.com/cgit/snapshot
 ARG GIT_VER=2.53.0
 
+# openssl-dev: required by cgit (MD5 for ETag + Gravatar), not git itself
 RUN apk add --no-cache \
     build-base \
     openssl-dev \
@@ -41,6 +42,8 @@ RUN --mount=type=cache,id=cgit-cache-${TARGETARCH},target=/usr/src/cgit-archive,
 
 # -----------------------------------------------------------------------------
 # git source + build (cached per-arch)
+# Stripped to only what cgit needs: cat-file, rev-list, rev-parse,
+# diff-tree, for-each-ref, read-tree, and the git dispatcher binary.
 # -----------------------------------------------------------------------------
 ENV GIT_BUILD_OPTS="\
   NO_GETTEXT=YesPlease \
@@ -49,6 +52,9 @@ ENV GIT_BUILD_OPTS="\
   NO_REGEX=YesPlease \
   NO_PERL=YesPlease \
   NO_PYTHON=YesPlease \
+  NO_ICONV=YesPlease \
+  NO_EXPAT=YesPlease \
+  NO_LIBPCRE=YesPlease \
   NO_INSTALL_HARDLINKS=YesPlease \
   INSTALL_SYMLINKS=1"
 
@@ -70,7 +76,10 @@ RUN --mount=type=cache,id=git-cache-${TARGETARCH},target=/usr/src/git-archive,sh
 
 # -----------------------------------------------------------------------------
 # build cgit
-# FIX: symlink instead of cp -r — avoids copying ~50MB git source tree
+# FIX: cp -al (hard-link copy) instead of ln -s — cgit Makefile resolves
+# `..` relative to the real directory, not the symlink, causing it to look
+# for ../cgit.mk in the wrong place when a symlink is used.
+# Hard links are zero-cost on the same filesystem and keep correct `..`.
 # -----------------------------------------------------------------------------
 WORKDIR /usr/src/cgit
 
@@ -83,8 +92,7 @@ RUN set -eux && \
       LUA_PKGCONFIG=lua5.4 \
       GIT_VER=${GIT_VER}
 
-# FIX: merged strip + cleanup into one RUN layer
-# FIX: batched file(1) via xargs for speed (avoids per-file fork)
+# Merge strip + cleanup into one layer; batch file(1) via xargs for speed
 RUN set -eux && \
     strip cgit && \
     find /usr/local -type f | xargs -r file | grep ELF | cut -d: -f1 | xargs -r strip && \
@@ -98,7 +106,6 @@ RUN set -eux && \
 # -----------------------------------------------------------------------------
 FROM alpine:3.23 AS runtime
 
-# FIX: SHELL in runtime stage for consistent error behaviour
 SHELL ["/bin/ash", "-euo", "pipefail", "-c"]
 
 ARG BUILD_DATE
@@ -114,7 +121,7 @@ LABEL org.opencontainers.image.url="https://github.com/baddate/gitolite-cgit-doc
 LABEL org.opencontainers.image.source="https://github.com/baddate/gitolite-cgit-docker"
 LABEL org.opencontainers.image.licenses="GPL-3.0"
 
-# FIX: removed `gzip` — busybox already provides it
+# gzip omitted — busybox already provides it
 # py3-markdown kept — required by md2html filter
 RUN apk add --no-cache \
         tini \
@@ -182,8 +189,7 @@ RUN rm -f /etc/nginx/http.d/default.conf
 # -----------------------------------------------------------------------------
 COPY entrypoint.sh /entrypoint.sh
 
-# FIX: /var/cache/cgit owned by fcgiwrap so cgit can write cache entries
-# FIX: removed dead rm of git-http-*/git-remote-* (never copied into runtime)
+# /var/cache/cgit owned by fcgiwrap so cgit can write cache entries
 RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
     chown -R root:nginx /var/www/htdocs/cgit && \
     chown fcgiwrap:nginx /var/cache/cgit && \
