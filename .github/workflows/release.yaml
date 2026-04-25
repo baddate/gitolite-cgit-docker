@@ -119,11 +119,11 @@ jobs:
           context: gitolite-cgit
           file: gitolite-cgit/Dockerfile
           platforms: ${{ matrix.platform }}
-          outputs: |
-            type=image
-            name=${{ env.REGISTRY }}/${{ env.IMAGE }}
-            push-by-digest=true
-            name-canonical=true
+          outputs: >-
+            type=image,
+            name=${{ env.REGISTRY }}/${{ env.IMAGE }},
+            push-by-digest=true,
+            name-canonical=true,
             push=true
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
