@@ -32,51 +32,57 @@ env:
   GIT_VER: ${{ inputs.version || '2.53.0' }}
 
 jobs:
-  # ── amd64：构建 → scan → 推 per-arch 镜像 ──────────────────────────────────
-  build-amd64:
-    name: Build amd64
-    runs-on: ubuntu-latest
+  build:
+    name: Build (${{ matrix.platform }})
+    runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
       packages: write
       security-events: write
-    outputs:
-      digest: ${{ steps.push.outputs.digest }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+            cache_key: amd64
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            cache_key: arm64
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Compute tags & labels
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=ref,event=branch
-            type=sha,prefix=,format=short
-            type=raw,value=cgit-${{ env.CGIT_VER }}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') }}
-
-      - name: Set up Docker BuildX
-        uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # build → load 到本地 daemon，同时 warm GHA cache
-      - name: Build (load for scan)
-        uses: docker/build-push-action@v6
+      - name: Compute labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE }}
+
+      # ── amd64 only: load → scan ────────────────────────────────────────────
+      - name: Build for scan (amd64 only)
+        if: matrix.platform == 'linux/amd64'
+        uses: docker/build-push-action@v7
         with:
           context: gitolite-cgit
           file: gitolite-cgit/Dockerfile
           platforms: linux/amd64
+          load: true
+          push: false
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE }}:scan-target
+          labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             CGIT_VER=cgit-${{ env.CGIT_VER }}
             CGIT_URL=${{ env.CGIT_URL }}/snapshot
@@ -84,14 +90,11 @@ jobs:
             BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
             REVISION=${{ github.sha }}
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
-          load: true
-          push: false
-          cache-from: type=gha,scope=amd64
-          cache-to: type=gha,scope=amd64,mode=max
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE }}:scan-target
-          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.cache_key }}
+          cache-to: type=gha,scope=${{ matrix.cache_key }},mode=max
 
       - name: Trivy vulnerability scan
+        if: matrix.platform == 'linux/amd64'
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE }}:scan-target
@@ -102,27 +105,27 @@ jobs:
           vuln-type: os,library
           severity: CRITICAL,HIGH
 
-      - name: Check SARIF exists
-        id: check-sarif
-        if: always()
-        run: |
-          [ -f trivy-results.sarif ] && echo "exists=true" >> "$GITHUB_OUTPUT" \
-                                     || echo "exists=false" >> "$GITHUB_OUTPUT"
-
       - name: Upload Trivy SARIF
-        if: steps.check-sarif.outputs.exists == 'true'
+        if: matrix.platform == 'linux/amd64' && always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-results.sarif
 
-      # scan 通过后才推，复用 cache（不需要重新构建）
-      - name: Push amd64
-        id: push
-        uses: docker/build-push-action@v6
+      # ── build & push digest ────────────────────────────────────────────────
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v7
         with:
           context: gitolite-cgit
           file: gitolite-cgit/Dockerfile
-          platforms: linux/amd64
+          platforms: ${{ matrix.platform }}
+          outputs: |
+            type=image
+            name=${{ env.REGISTRY }}/${{ env.IMAGE }}
+            push-by-digest=true
+            name-canonical=true
+            push=true
+          labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             CGIT_VER=cgit-${{ env.CGIT_VER }}
             CGIT_URL=${{ env.CGIT_URL }}/snapshot
@@ -130,82 +133,48 @@ jobs:
             BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
             REVISION=${{ github.sha }}
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
-          push: true
-          cache-from: type=gha,scope=amd64 # 命中 load step 写的 cache，不重建
-          cache-to: type=gha,scope=amd64,mode=max
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE }}:amd64-staging
-          labels: ${{ steps.meta.outputs.labels }}
-          provenance: false # per-arch staging 不需要 provenance，merge 时加
-          sbom: false
+          cache-from: type=gha,scope=${{ matrix.cache_key }}
+          cache-to: type=gha,scope=${{ matrix.cache_key }},mode=max
 
-  # ── arm64：与 amd64 并行，独立 cache scope ──────────────────────────────────
-  build-arm64:
-    name: Build arm64
-    runs-on: ubuntu-latest-arm
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.cache_key }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+  merge:
+    name: Merge multi-arch manifest
+    runs-on: ubuntu-latest
+    needs: build
     permissions:
-      contents: read
       packages: write
-    outputs:
-      digest: ${{ steps.push.outputs.digest }}
+      id-token: write
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Compute tags & labels
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Download digest artifacts
+        uses: actions/download-artifact@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=ref,event=branch
-            type=sha,prefix=,format=short
-            type=raw,value=cgit-${{ env.CGIT_VER }}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') }}
+          path: /tmp/digests
+          pattern: digest-*
+          merge-multiple: true
 
-      - name: Set up Docker BuildX
-        uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & push arm64
-        id: push
-        uses: docker/build-push-action@v6
-        with:
-          context: gitolite-cgit
-          file: gitolite-cgit/Dockerfile
-          platforms: linux/arm64
-          build-args: |
-            CGIT_VER=cgit-${{ env.CGIT_VER }}
-            CGIT_URL=${{ env.CGIT_URL }}/snapshot
-            GIT_VER=${{ env.GIT_VER }}
-            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-            REVISION=${{ github.sha }}
-            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
-          push: true
-          cache-from: type=gha,scope=arm64
-          cache-to: type=gha,scope=arm64,mode=max
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE }}:arm64-staging
-          labels: ${{ steps.meta.outputs.labels }}
-          provenance: false
-          sbom: false
-
-  # ── Merge：两 arch 都就绪后合成 multi-arch manifest ─────────────────────────
-  merge:
-    name: Merge multi-arch manifest
-    runs-on: ubuntu-latest
-    needs: [build-amd64, build-arm64]
-    permissions:
-      packages: write
-
-    steps:
       - name: Compute tags
         id: meta
         uses: docker/metadata-action@v5
@@ -219,23 +188,25 @@ jobs:
             type=raw,value=cgit-${{ env.CGIT_VER }}
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') }}
 
-      - name: Set up Docker BuildX
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create & push multi-arch manifests
+      - name: Create multi-arch manifest and push tags
+        working-directory: /tmp/digests
         run: |
-          set -euxo pipefail
-          while IFS= read -r tag; do
-            [ -z "$tag" ] && continue
-            docker buildx imagetools create \
-              --tag "${tag}" \
-              "${{ env.REGISTRY }}/${{ env.IMAGE }}:amd64-staging@${{ needs.build-amd64.outputs.digest }}" \
-              "${{ env.REGISTRY }}/${{ env.IMAGE }}:arm64-staging@${{ needs.build-arm64.outputs.digest }}"
-          done <<< "${{ steps.meta.outputs.tags }}"
+          SOURCES=$(printf '${{ env.REGISTRY }}/${{ env.IMAGE }}@sha256:%s ' *)
+          TAGS=$(jq -cr '.tags | map("-t " + .) | join(" ")' <<< '${{ steps.meta.outputs.json }}')
+          docker buildx imagetools create $TAGS $SOURCES
+
+      - name: Inspect manifest
+        run: |
+          docker buildx imagetools inspect \
+            ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ steps.meta.outputs.version }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v4.1.0
+
+      - name: Sign multi-arch manifest (keyless)
+        run: |
+          DIGEST=$(docker buildx imagetools inspect \
+            ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ steps.meta.outputs.version }} \
+            --format '{{json .Manifest.Digest}}' | tr -d '"')
+          echo '${{ steps.meta.outputs.tags }}' | tr '\n' '\0' | \
+            xargs -0 -I {} cosign sign --yes "{}@${DIGEST}"
