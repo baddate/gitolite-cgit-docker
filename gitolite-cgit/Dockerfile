@@ -57,7 +57,9 @@ RUN --mount=type=cache,id=git-cache,target=/usr/src/git-archive,sharing=locked \
     fi && \
     tar xf "$GIT_TGZ" -C /usr/src && \
     cd "/usr/src/git-${GIT_VER}" && \
-    make prefix=/usr/local all && \
+    make prefix=/usr/local all \
+        NO_REGEX=NeedsStartEnd \
+        NO_GETTEXT=YesPlease && \
     make prefix=/usr/local install
 
 # -----------------------------------------------------------------------------
