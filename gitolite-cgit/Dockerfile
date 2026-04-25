@@ -181,9 +181,6 @@ COPY --from=cgit_builder /usr/local/libexec/git-core/git-rev-parse      /usr/loc
 COPY --from=cgit_builder /usr/local/libexec/git-core/git-for-each-ref   /usr/local/libexec/git-core/
 COPY --from=cgit_builder /usr/local/libexec/git-core/git-read-tree      /usr/local/libexec/git-core/
 
-# lib (if has .so)
-COPY --from=cgit_builder /usr/local/lib/git-core                        /usr/local/lib/git-core
-
 ENV PATH="/usr/local/bin:/usr/local/libexec/git-core:$PATH"
 ENV GIT_EXEC_PATH=/usr/local/libexec/git-core
 
