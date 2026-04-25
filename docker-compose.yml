@@ -28,6 +28,7 @@ services:
       - /tmp
       - /run
       - /var/cache/nginx
+      - /var/lib/nginx/logs
 
     ports:
       - "8080:80" # Web UI

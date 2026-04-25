@@ -142,6 +142,7 @@ RUN apk add --no-cache \
         /var/www/htdocs/cgit \
         /usr/lib/cgit/filters \
         /usr/local/lib/cgit \
+        /var/lib/nginx/logs \
         /var/cache/cgit && \
     rm -rf /var/cache/apk/* /tmp/*
 
