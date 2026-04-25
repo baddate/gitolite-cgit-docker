@@ -16,7 +16,11 @@ if [ ! -f /var/lib/git/cgitrc ]; then
 fi
 
 # ── nginx config ─────────────────────────────────────────
-cp /usr/local/share/nginx-cgit.conf /etc/nginx/http.d/cgit.conf
+# Only copy if not exists (idempotent)
+if [ ! -f /etc/nginx/http.d/cgit.conf ]; then
+  cp /usr/local/share/nginx-cgit.conf /etc/nginx/http.d/cgit.conf
+fi
+
 
 # ── runtime dirs ─────────────────────────────────────────
 mkdir -p /run/fcgiwrap        && chown fcgiwrap:nginx /run/fcgiwrap && chmod 0750 /run/fcgiwrap
