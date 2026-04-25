@@ -1,299 +1,285 @@
-# gitolite-cgit based on alpine image
+# gitolite-cgit-docker
 
-## What is this image?
+A self-hosted Git stack running on Alpine Linux, split into two focused containers:
 
-[`rusian/gitolite-cgit`](https://hub.docker.com/r/rusian/gitolite-cgit) is a Docker image with `cgit` in dark-mode and `gitolite` running on top of `alpine` base image.
+- **gitolite** — SSH-based Git repository management and access control
+- **cgit** — Fast, lightweight web UI for browsing repositories (dark mode, Catppuccin theme)
 
-![cgit](img/cgit.png)
+![cgit screenshot](img/cgit.png)
 
-## Usage
+## Images
 
-1. Pull the image
+Both images are published to GitHub Container Registry:
+
+```
+ghcr.io/<owner>/gitolite-cgit-docker-gitolite:latest
+ghcr.io/<owner>/gitolite-cgit-docker-cgit:latest
+```
+
+---
+
+## Quick start with Docker Compose
+
+### 1. Clone the repository
 
 ```console
-$ docker pull rusian/gitolite-cgit
+git clone https://github.com/<owner>/gitolite-cgit-docker.git
+cd gitolite-cgit-docker
 ```
 
-2. Run the image with provided environment:
+### 2. Configure environment
+
+Copy the example env file and fill in your values:
 
 ```console
-$ docker run -e SSH_KEY="$(cat ~/.ssh/id_ed25519.pub)" -e SSH_KEY_NAME="$(whoami)" -p 22:22 -p 80:80 -p 9418:9418 -v repo:/var/lib/git rusian/gitolite-cgit
+cp .env.example .env
 ```
 
-### Environment
-
-- `SSH_KEY`: Public key of gitolite admin
-- `SSH_KEY_NAME`: Name of gitolite admin
-- `CGIT_CLONE_PREFIX`: cgit clone prefix to display on each repository. For example: `https://git.example.com`, the clone URL should be: `ssh://git@example.com`
-- `CGIT_ROOT_TITLE`: Text printed as heading on the repository index page. Default value: "Git Repository Browser".
-- `CGIT_DESC`: Add description to cgit
-- `CGIT_SNAPSHOT`: Snapshot tarball.
-
-### Exposed ports
-
-- Port 22: for SSH clone
-- Port 80: for cgit webpage running on Nginx
-- Port 9418: for git daemon protocol
-
-### Volume
-
-- `/var/lib/git`: gitolite home folder, store all repositories like `gitolite-admin`
-- `/etc/ssh/`: store all generated SSH server key
-
-### How to interact with git server
-
-Cgit webpage: `http://<server_ip>/`
-
-Supported clone method:
-
-- SSH: authentication with gitolite configuration inside `gitolite-admin`.
-  For more information, please refer to [basic administration](https://gitolite.com/gitolite/basic-admin.html).
-
-        git clone ssh://git@<server_ip>/<repo_name>
-
-- HTTP: `enable-http-clone=1` by default, which let cgit act as a dumb HTTP enpoint for git clones.
-  You can disable that by edit /etc/cgitrc. I may consider to add more feature, so you can set config
-  from `docker run` or `docker-compose.yml`. `git push` is not supported via HTTP.
-
-        git clone http://<server_ip>/<repo_name>
-
-- GIT: `git daemon` is enabled by default with `upload-pack` service
-  (this serves git fetch-pack and git ls-remote clients), allowing anonymous
-  fetch, clone.
-
-        git clone git://<server_ip>/<repo_path>
-
-## Docker-compose
-
-1. Pull the image:
-
-```console
-$ docker pull rusian/gitolite-cgit
-```
-
-2. Create environment file
-
-I create `gitolite` admin with the host public key and username.
-In case, you are running this on server, you need to enter
-**SSH_KEY** and **SSH_KEY_NAME** into `config.env`:
-
-```
-#
-# Gitolite options
-#
-SSH_KEY=<your public key content>
-SSH_KEY_NAME=<your gitolite name>
-#
-# Cgit options
-#
-CGIT_ROOT_TITLE=Git Repository Browser
-CGIT_DESC=a fast webinterface for the git dscm
-CGIT_CLONE_PREFIX=http://<YOUR-DOMAIN> ssh://git@<YOUR-DOMAIN>
-
-CGIT_SNAPSHOT=tar.gz tar.bz2 tar.xz
-```
-
-For convience, I create a `bootstrap.sh` script for user who use public
-key and name from the host running Docker:
-
-```bash
-# change ssh_key, ssh_key_name to reflect your current setup
-SSH_KEY=$(cat ~/.ssh/id_ed25519.pub)
-SSH_KEY_NAME=$(whoami)
-
-sed -i.bak \
-    -e "s#SSH_KEY=.*#SSH_KEY=${SSH_KEY}#g" \
-    -e "s#SSH_KEY_NAME=.*#SSH_KEY_NAME=${SSH_KEY_NAME}#g" \
-    "$(dirname "$0")/config.env"
-```
-
-Generate public key and private key:
+Or use the bootstrap script to auto-fill your local SSH key:
 
 ```console
 sh bootstrap.sh
 ```
 
-3. Create `docker-compose.yml`:
+The `.env` file:
 
-```yml
+```ini
+#
+# Gitolite options
+#
+SSH_KEY=<your public key content>       # e.g. $(cat ~/.ssh/id_ed25519.pub)
+SSH_KEY_NAME=admin                      # gitolite admin username
+
+#
+# Cgit options
+#
+CGIT_ROOT_TITLE=Git Repository Browser
+CGIT_DESC=A fast web interface for the git dscm
+CGIT_CLONE_PREFIX=https://git.example.com ssh://git@git.example.com
+
+CGIT_SNAPSHOT=tar.gz tar.bz2 tar.xz
+ENABLE_HTTP_CLONE=1
+```
+
+### 3. Start the stack
+
+```console
+docker compose up -d
+```
+
+The `docker-compose.yml` ships ready to use:
+
+```yaml
 services:
-  app:
-    image: rusian/gitolite-cgit
-    container_name: gitolite-cgit
-    env_file: config.env
+  gitolite:
+    image: ghcr.io/<owner>/gitolite-cgit-docker-gitolite:latest
+    container_name: gitolite
     restart: unless-stopped
-    volumes:
-      - ssh:/etc/ssh
-      - git:/var/lib/git
+    env_file: .env
     ports:
-      - 22:22
-      - 80:80
-      - 9418:9418
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    cap_add:
-      - CAP_NET_BIND_SERVICE
-      - CAP_CHOWN
-      - CAP_SETGID
-      - CAP_SETUID
-    read_only: true
-    tmpfs:
-      - /run
-      - /tmp
-      - /var/cache/cgit
-      - /var/log/nginx
-volumes:
-  ssh:
-  git:
-```
-Then power-on your container:
+      - "2222:22" # SSH — git clone / push
+    volumes:
+      - git-data:/var/lib/git # repositories + gitolite home
+      - ssh-data:/etc/ssh # persistent SSH host keys
+    networks:
+      - git-net
 
-```console
-$ docker compose up -d
-```
-
-### Customize cgit configuration
-
-As there are many cgit configuration, you can create cgitrc configure and map to `/etc/cgitrc`
-
-```bash
-# Copy cgitrc from existing container
-docker cp gitolite-cgit:/etc/cgitrc .
-```
-
-Modify the `docker-compose.yml`:
-
-```yml
-services:
-  app:
-    image: rusian/gitolite-cgit
-    container_name: gitolite-cgit
-    env_file: config.env
+  cgit:
+    image: ghcr.io/<owner>/gitolite-cgit-docker-cgit:latest
+    container_name: cgit
     restart: unless-stopped
-    volumes:
-      - ssh:/etc/ssh
-      - git:/var/lib/git
-      - ./cgitrc:/etc/cgitrc
     ports:
-      - 22:22
-      - 80:80
-      - 9418:9418
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    cap_add:
-      - CAP_NET_BIND_SERVICE
-      - CAP_CHOWN
-      - CAP_SETGID
-      - CAP_SETUID
-    read_only: true
-    tmpfs:
-      - /run
-      - /tmp
-      - /var/cache/cgit
-      - /var/log/nginx
+      - "8080:80" # cgit web UI
+    volumes:
+      - git-data:/var/lib/git:ro # read-only — cgit never writes repos
+    depends_on:
+      - gitolite
+    networks:
+      - git-net
+
 volumes:
-  ssh:
-  git:
+  git-data:
+  ssh-data:
+
+networks:
+  git-net:
+    driver: bridge
 ```
 
-## Build docker image
+Once running:
+
+- Web UI: `http://<host>:8080`
+- SSH: `ssh git@<host> -p 2222`
+
+---
+
+## Environment variables
+
+### gitolite container
+
+| Variable       | Required | Description                                                                             |
+| -------------- | -------- | --------------------------------------------------------------------------------------- |
+| `SSH_KEY`      | ✅       | Public key of the initial gitolite admin (e.g. contents of `~/.ssh/id_ed25519.pub`)     |
+| `SSH_KEY_NAME` | ✅       | Username for the gitolite admin account                                                 |
+| `FORCE_CHOWN`  | —        | Set to `1` to force-fix volume ownership on every start (useful after volume migration) |
+
+### cgit container
+
+| Variable            | Required | Description                                                                                                      |
+| ------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `ENABLE_HTTP_CLONE` | —        | Enable dumb-HTTP clone via cgit (`1` = enabled, default `1`)                                                     |
+| `CGIT_CLONE_PREFIX` | —        | Space-separated clone URL prefixes shown in the web UI, e.g. `https://git.example.com ssh://git@git.example.com` |
+| `CGIT_ROOT_TITLE`   | —        | Page heading on the repository index. Default: `Git Repository Browser`                                          |
+| `CGIT_DESC`         | —        | Subtitle shown below the heading                                                                                 |
+| `CGIT_SNAPSHOT`     | —        | Enabled snapshot formats, e.g. `tar.gz tar.bz2 tar.xz`                                                           |
+
+> **Note:** cgit configuration is generated once into the shared volume at
+> `/var/lib/git/cgitrc`. Edit that file directly for any settings not covered
+> by the environment variables above. The file is not overwritten on restart.
+
+---
+
+## Exposed ports
+
+| Container | Port | Purpose                                    |
+| --------- | ---- | ------------------------------------------ |
+| gitolite  | `22` | SSH (git clone / push / gitolite commands) |
+| cgit      | `80` | cgit web UI served by nginx                |
+
+The `docker-compose.yml` maps these to `2222` and `8080` on the host by default.
+Adjust the left-hand side of the `ports:` mapping to suit your setup.
+
+---
+
+## Volumes
+
+| Volume     | Container | Mode | Contents                                                           |
+| ---------- | --------- | ---- | ------------------------------------------------------------------ |
+| `git-data` | gitolite  | `rw` | Repositories, gitolite-admin, `.gitolite.rc`, SSH authorized keys  |
+| `git-data` | cgit      | `ro` | Same volume, read-only — cgit browses repos but never writes       |
+| `ssh-data` | gitolite  | `rw` | SSH host keys (`ssh_host_ed25519_key`) — persisted across restarts |
+
+---
+
+## Cloning repositories
+
+### SSH (read/write)
+
+Authentication is managed by gitolite via `~/.ssh/authorized_keys` inside the volume.
 
 ```console
-$ git clone https://c.hgit.ga/containers/gitolite-cgit-docker.git
+git clone ssh://git@<host>:<port>/<repo>
+# default port 2222 when using the provided docker-compose.yml
+git clone ssh://git@<host>:2222/myrepo
 ```
+
+### HTTP (read-only)
+
+HTTP clone is enabled by default (`ENABLE_HTTP_CLONE=1`). Push over HTTP is not supported.
 
 ```console
-$ cd gitolite-cgit-docker/gitolite-cgit
+git clone http://<host>:8080/myrepo
 ```
+
+---
+
+## Customising cgit
+
+The cgit configuration lives at `/var/lib/git/cgitrc` inside the shared volume.
+It is created from the built-in template on the first start and **never overwritten** on subsequent restarts, so edits persist.
+
+To inspect or edit it directly:
 
 ```console
-$ docker build --tag rusian/gitolite-cgit -f Dockerfile .
+# Copy out of the volume
+docker cp gitolite:/var/lib/git/cgitrc ./cgitrc
+
+# Edit, then copy back
+docker cp ./cgitrc gitolite:/var/lib/git/cgitrc
 ```
 
-## Extra
+Or mount a custom file at start time:
 
-Example of `gitolite-admin/conf/gitolite.conf`:
+```yaml
+volumes:
+  - git-data:/var/lib/git
+  - ./cgitrc:/var/lib/git/cgitrc # override generated config
+```
+
+---
+
+## Gitolite administration
+
+Gitolite is managed through the `gitolite-admin` repository. Clone it with your admin key:
+
+```console
+git clone ssh://git@<host>:2222/gitolite-admin
+```
+
+### Example `gitolite-admin/conf/gitolite.conf`
 
 ```conf
 #-----------
-#  General
+#  Groups
 #-----------
-@secret         =  gitolite-admin
-@hiddenrepo     =  gitolite-admin
+@admins  = alice
+@devs    = bob carol
 
 #-----------
-#  People
-#-----------
-@p-admin        =  paco
-@p-team         =  minoru
-
-#----------------------
 #  Repositories
-#----------------------
-repo @hiddenrepo
-     config cgit.ignore = 1
-
-repo @secret
-     - = cgit daemon
-     option deny-rules = 1
-
-repo @all
-     R          =  cgit daemon
-
+#-----------
 repo gitolite-admin
-     RW+        =  @p-admin
+    RW+ = @admins
 
-repo science/numeral
-     RW+                        =  @p-admin
-     -   master develop         =  @p-team
-     -   refs/tags/v[0-9]       =  @p-team
-     RW+                        =  @p-team
-     desc                       =  "Repo paco files"
-     config gitweb.owner        =  paco
+repo myproject
+    RW+ = @admins
+    RW  = @devs
+    R   = cgit daemon         # allow cgit and anonymous git-daemon read
+    desc = "My project"
+    config gitweb.owner = alice
 
-repo documents/operators
-     RW+                        =  @p-admin
-     -   master develop         =  @p-team
-     -   refs/tags/v[0-9]       =  @p-team
-     RW+                        =  @p-team
-     desc                       =  "Repo minoru files"
-     config gitweb.owner        =  minoru
-
-#------------------------
-# Personal repositories
-#------------------------
+# Personal repos (any member can create their own)
 repo CREATOR/[a-zA-Z0-9].*
-     C                          =  @p-admin @p-team
-     RW+                        =  CREATOR
-     RW+                        =  @p-admin
-     R                          =  @all
-     config gitweb.owner        =  %GL_CREATOR
+    C   = @admins @devs
+    RW+ = CREATOR
+    R   = @all
+    config gitweb.owner = %GL_CREATOR
 ```
 
-#### Set default branch
+### Set default branch for a repository
 
 ```console
-ssh git@gitolite-host symbolic-ref public/foo HEAD refs/heads/main
+ssh git@<host> -p 2222 symbolic-ref <repo> HEAD refs/heads/main
 ```
 
-Real sample:
+### Delete a remote branch
 
 ```console
-ssh git@c.fridu.us symbolic-ref containers/gitolite-cgit-docker HEAD refs/heads/main
+git push origin :branch-name
 ```
 
-#### Delete branch
+---
+
+## Building locally
 
 ```console
-git push origin :branch
+# gitolite image
+docker build -t gitolite-cgit-docker-gitolite ./gitolite
+
+# cgit image
+docker build -t gitolite-cgit-docker-cgit ./cgit
 ```
 
-Real sample:
+Multi-arch builds (amd64 + arm64) are handled by the GitHub Actions workflows in
+`.github/workflows/`.
 
-```console
-git push origin :master
-```
+---
+
+## Theme
+
+The cgit web UI uses the [Catppuccin](https://github.com/catppuccin/catppuccin) colour scheme:
+
+- **Dark mode** — Catppuccin Macchiato
+- **Light mode** — Catppuccin Latte (auto-switched via `prefers-color-scheme`)
+
+Syntax highlighting uses Pygments with the same palette.
