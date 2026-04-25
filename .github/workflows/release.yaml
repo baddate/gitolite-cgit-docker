@@ -119,6 +119,7 @@ jobs:
           context: gitolite-cgit
           file: gitolite-cgit/Dockerfile
           platforms: ${{ matrix.platform }}
+          provenance: false
           outputs: >-
             type=image,
             name=${{ env.REGISTRY }}/${{ env.IMAGE }},
