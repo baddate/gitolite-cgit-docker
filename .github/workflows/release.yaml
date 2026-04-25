@@ -136,6 +136,13 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.cache_key }}
           cache-to: type=gha,scope=${{ matrix.cache_key }},mode=max
 
+      - name: Verify digest exists in registry
+        run: |
+          digest="${{ steps.build.outputs.digest }}"
+          echo "Verifying: ${{ env.REGISTRY }}/${{ env.IMAGE }}@${digest}"
+          docker buildx imagetools inspect \
+            "${{ env.REGISTRY }}/${{ env.IMAGE }}@${digest}"
+
       - name: Export digest
         run: |
           mkdir -p /tmp/digests
