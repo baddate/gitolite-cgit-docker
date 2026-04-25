@@ -6,6 +6,7 @@ FROM --platform=$BUILDPLATFORM alpine:3.23 AS builder
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
+ARG TARGETARCH
 
 # Alpine uses busybox ash (not POSIX sh) — needed for pipefail support
 SHELL ["/bin/ash", "-o", "pipefail", "-c"]
@@ -30,7 +31,7 @@ WORKDIR /usr/src
 # -----------------------------------------------------------------------------
 # cgit source (cache)
 # -----------------------------------------------------------------------------
-RUN --mount=type=cache,id=cgit-cache,target=/usr/src/cgit-archive,sharing=locked \
+RUN --mount=type=cache,id=cgit-cache-${TARGETARCH},target=/usr/src/cgit-archive,sharing=locked \
     set -euxo pipefail && \
     ENC_VER="$(printf '%s' "$CGIT_VER" | sed -e 's/%/%25/g' -e 's:/:%2F:g')" && \
     ENC_VER_DASH="$(printf '%s' "$CGIT_VER" | sed -e 's/%/%25/g' -e 's:/:-:g')" && \
@@ -57,7 +58,7 @@ ENV GIT_BUILD_OPTS="\
 ENV CFLAGS="-Os -fomit-frame-pointer -ffunction-sections -fdata-sections -flto=auto"
 ENV LDFLAGS="-Wl,--gc-sections -Wl,--as-needed -flto=auto"
 
-RUN --mount=type=cache,id=git-cache,target=/usr/src/git-archive,sharing=locked \
+RUN --mount=type=cache,id=git-cache-${TARGETARCH},target=/usr/src/git-archive,sharing=locked \
     set -eux && \
     GIT_TGZ="/usr/src/git-archive/git-${GIT_VER}.tar.xz" && \
     if [ ! -f "$GIT_TGZ" ]; then \
