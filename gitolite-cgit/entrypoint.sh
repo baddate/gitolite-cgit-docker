@@ -125,11 +125,16 @@ Subsystem	sftp	/usr/lib/ssh/sftp-server
 
 # Algorithms
 Ciphers chacha20-poly1305@openssh.com
-KexAlgorithms curve25519-sha256@libssh.org
+KexAlgorithms curve25519-sha256
 MACs hmac-sha2-512-etm@openssh.com
 HostKeyAlgorithms=ssh-ed25519
 EOF
 fi
+
+# Ensure /var/lib/git is owned by git before gitolite setup runs.
+# Docker named volumes are created root:root — fix this on every start (fast).
+chown git:git /var/lib/git
+chmod 750 /var/lib/git
 
 # -------------------------
 # /var/lib/git/.gitolite.rc
@@ -354,7 +359,7 @@ fi
 # -------------------------------
 
 # Create ssh host key if not present
-if [ ! -f /etc/ssh/ssh_host_rsa_key ]; then
+if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
   ssh-keygen -A
 fi
 
@@ -370,18 +375,11 @@ if [ ! -d /etc/nginx/http.d ]; then
     install -d -m755 /etc/nginx/http.d || true
 fi
 
-# Init container
-if [ ! -f /etc/nginx/http.d/cgit.conf ]; then
-  # enable random git password
-  GIT_PASSWORD=$(date +%s | sha256sum | base64 | head -c 32)
-  echo "git:$GIT_PASSWORD" | chpasswd
-
-  # add web user (nginx) to gitolite group (git)
-  adduser nginx git
-  adduser fcgiwrap git
-
-  ## Config cgit interface
-  cat > /etc/cgitrc <<- EOF
+# Init container — guard on the persistent volume file, not the tmpfs symlink
+if [ ! -f /var/lib/git/cgitrc ]; then
+  # Write cgitrc to the persistent git volume (/etc/cgitrc is read-only rootfs).
+  # A symlink /etc/cgitrc -> /var/lib/git/cgitrc is created below.
+  cat > /var/lib/git/cgitrc <<- EOF
 #
 # cgit config
 #
@@ -483,9 +481,8 @@ mimetype.xbm=image/x-xbitmap
 mimetype.xcf=image/x-xcf
 mimetype.xpm=image/x-xpixmap
 
-# Enable syntax highlighting and about formatting
+# Enable syntax highlighting
 source-filter=/usr/lib/cgit/filters/syntax-highlighting.py
-about-filter=/usr/lib/cgit/filters/about-formatting.sh
 
 # Include some more info about example.com on the index page
 root-readme=/var/www/htdocs/cgit/root-readme.md
@@ -533,18 +530,18 @@ EOF
 
   # Append clone-prefix
   if [ -n "$CGIT_CLONE_PREFIX" ]; then
-      echo "# Specify some default clone prefixes" >> /etc/cgitrc
-      echo "clone-prefix=$CGIT_CLONE_PREFIX" >> /etc/cgitrc
+      echo "# Specify some default clone prefixes" >> /var/lib/git/cgitrc
+      echo "clone-prefix=$CGIT_CLONE_PREFIX" >> /var/lib/git/cgitrc
   fi
 
   if [ -n "$CGIT_ROOT_TITLE" ]; then
-      echo "# Set the title and heading of the repository index page" >> /etc/cgitrc
-      echo "root-title=$CGIT_ROOT_TITLE" >> /etc/cgitrc
+      echo "# Set the title and heading of the repository index page" >> /var/lib/git/cgitrc
+      echo "root-title=$CGIT_ROOT_TITLE" >> /var/lib/git/cgitrc
   fi
 
   if [ -n "$CGIT_DESC" ]; then
-      echo "# Set description repository" >> /etc/cgitrc
-      echo "root-desc=$CGIT_DESC" >> /etc/cgitrc
+      echo "# Set description repository" >> /var/lib/git/cgitrc
+      echo "root-desc=$CGIT_DESC" >> /var/lib/git/cgitrc
   fi
 
   # Using highlight syntax
@@ -553,13 +550,15 @@ EOF
   #  -e "s#\#exec highlight --force -f -I -O xhtml#exec highlight --force --inline-css -f -I -O xhtml#g" \
   #  /usr/lib/cgit/filters/syntax-highlighting.sh
 
-  # Nginx configuration
-  rm -f /etc/nginx/http.d/default.conf || true
-  # Comment out the "user" directive in the main nginx.conf — the master
-  # process already runs as the nginx user, so this directive is ignored
-  # and produces an annoying but harmless warning.
-  sed -i 's/^user /#user /' /etc/nginx/nginx.conf 2>/dev/null || true
-  cat > /etc/nginx/http.d/cgit.conf <<- EOF
+  # (nginx config is generated unconditionally below, outside this if-block)
+
+fi
+
+# -------------------------------------------------------
+# Nginx configuration — regenerated every start (tmpfs is ephemeral)
+# -------------------------------------------------------
+mkdir -p /run/nginx-conf
+cat > /run/nginx-conf/cgit.conf <<- EOF
 server {
     listen 80 default_server;
     server_name localhost;
@@ -641,17 +640,27 @@ server {
     aio threads;
 }
 EOF
+# -------------------------------------------------------
+# Runtime symlinks (created every start, idempotent)
+# -------------------------------------------------------
+# /etc/cgitrc is a symlink baked into the image → /var/lib/git/cgitrc (no action needed)
 
+# /etc/nginx/http.d is mounted as tmpfs (empty on each start).
+# Copy our generated config from /run/nginx-conf into the tmpfs http.d.
+# Also suppress the nginx "user" directive warning by writing a fixed nginx.conf to tmpfs.
+if [ -f /run/nginx-conf/cgit.conf ]; then
+  cp /run/nginx-conf/cgit.conf /etc/nginx/http.d/cgit.conf
 fi
 
 # Start sshd as detach, log to stderr (-e)
 /usr/sbin/sshd -e
 
 # Create runtime directories (needed for tmpfs/read-only rootfs)
-install -d -m 0750 -o fcgiwrap -g nginx /run/fcgiwrap
-install -d -m 0755 -o nginx -g nginx /run/nginx
-install -d -m 0755 -o nginx -g nginx /var/log/nginx
-install -d -m 0755 -o nginx -g nginx /tmp/nginx
+# Use mkdir+chmod instead of install to avoid permission issues under no-new-privileges
+mkdir -p /run/fcgiwrap && chown fcgiwrap:nginx /run/fcgiwrap && chmod 0750 /run/fcgiwrap
+mkdir -p /run/nginx    && chown nginx:nginx /run/nginx         && chmod 0755 /run/nginx
+mkdir -p /var/log/nginx && chown nginx:nginx /var/log/nginx    && chmod 0755 /var/log/nginx
+mkdir -p /tmp/nginx    && chown nginx:nginx /tmp/nginx         && chmod 0755 /tmp/nginx
 
 spawn-fcgi -s /run/fcgiwrap/fcgiwrap.socket -u fcgiwrap -g git -U fcgiwrap -G nginx -M 0660 -f /usr/bin/fcgiwrap &
 
