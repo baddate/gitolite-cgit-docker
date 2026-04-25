@@ -48,10 +48,16 @@ RUN --mount=type=cache,id=cgit-cache,target=/usr/src/cgit-archive,sharing=locked
 # -----------------------------------------------------------------------------
 # git source + build (cache)
 # -----------------------------------------------------------------------------
-ENV GIT_BUILD_OPTS="NO_REGEX=NeedsStartEnd \
-                    NO_GETTEXT=YesPlease \
-                    NO_TCLTK=YesPlease \
-                    NO_MSGFMT_EXT=YesPlease"
+ENV GIT_BUILD_OPTS="\
+  NO_GETTEXT=YesPlease \
+  NO_TCLTK=YesPlease \
+  NO_REGEX=YesPlease \
+  NO_PYTHON=YesPlease \
+  NO_INSTALL_HARDLINKS=YesPlease \
+  INSTALL_SYMLINKS=1 \
+  USE_LIBPCRE2=YesPlease"
+ENV CFLAGS="-Os -fomit-frame-pointer -flto=auto"
+ENV LDFLAGS="-Wl,--as-needed -flto=auto"
 
 RUN --mount=type=cache,id=git-cache,target=/usr/src/git-archive,sharing=locked \
     set -eux && \
@@ -162,24 +168,13 @@ RUN set -e && \
 # git
 COPY --from=cgit_builder /usr/local/bin/git                              /usr/local/bin/git
 
-# gitolite push/fetch
-COPY --from=cgit_builder /usr/local/libexec/git-core/git-receive-pack   /usr/local/libexec/git-core/
-COPY --from=cgit_builder /usr/local/libexec/git-core/git-upload-pack    /usr/local/libexec/git-core/
-COPY --from=cgit_builder /usr/local/libexec/git-core/git-upload-archive /usr/local/libexec/git-core/
-
-# git daemon
-COPY --from=cgit_builder /usr/local/libexec/git-core/git-daemon         /usr/local/libexec/git-core/
-
-# gitolite builtin operation
-COPY --from=cgit_builder /usr/local/libexec/git-core/git-shell          /usr/local/libexec/git-core/
-
-# cgit (log/diff/tree/blame)
-COPY --from=cgit_builder /usr/local/libexec/git-core/git-cat-file       /usr/local/libexec/git-core/
-COPY --from=cgit_builder /usr/local/libexec/git-core/git-diff-tree      /usr/local/libexec/git-core/
-COPY --from=cgit_builder /usr/local/libexec/git-core/git-rev-list       /usr/local/libexec/git-core/
-COPY --from=cgit_builder /usr/local/libexec/git-core/git-rev-parse      /usr/local/libexec/git-core/
-COPY --from=cgit_builder /usr/local/libexec/git-core/git-for-each-ref   /usr/local/libexec/git-core/
-COPY --from=cgit_builder /usr/local/libexec/git-core/git-read-tree      /usr/local/libexec/git-core/
+COPY --from=cgit_builder /usr/local/libexec/git-core /usr/local/libexec/git-core
+rm -rf \
+  git-http-* \
+  git-remote-* \
+  git-svn* \
+  git-p4* \
+  git-cvs*
 
 ENV PATH="/usr/local/bin:/usr/local/libexec/git-core:$PATH"
 ENV GIT_EXEC_PATH=/usr/local/libexec/git-core
