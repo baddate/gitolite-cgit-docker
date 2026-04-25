@@ -662,6 +662,7 @@ mkdir -p /run/fcgiwrap && chown fcgiwrap:nginx /run/fcgiwrap && chmod 0750 /run/
 mkdir -p /run/nginx    && chown nginx:nginx /run/nginx         && chmod 0755 /run/nginx
 mkdir -p /var/log/nginx && chown nginx:nginx /var/log/nginx    && chmod 0755 /var/log/nginx
 mkdir -p /tmp/nginx    && chown nginx:nginx /tmp/nginx         && chmod 0755 /tmp/nginx
+mkdir -p /var/lib/nginx/logs && chown nginx:nginx /var/lib/nginx && chmod 0755 /var/lib/nginx
 
 spawn-fcgi -s /run/fcgiwrap/fcgiwrap.socket -u fcgiwrap -g git -U fcgiwrap -G nginx -M 0660 -f /usr/bin/fcgiwrap &
 
