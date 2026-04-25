@@ -10,7 +10,7 @@ SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 
 ARG CGIT_VER=cgit-1.3
 ARG CGIT_URL=https://git.zx2c4.com/cgit/snapshot
-ARG GIT_VER=2.53.0
+ARG GIT_VER=2.52.0
 
 # Install build tools and development libraries
 # Dependencies based on cgit README: libzip, libcrypto (OpenSSL), libssl (OpenSSL)
@@ -104,7 +104,7 @@ RUN set -e && \
         zstd=1.5.7-r2 \
         gzip=1.14-r2 \
         bzip2=1.0.8-r6 && \
-    mkdir -p /run/nginx /var/www/htdocs/cgit /usr/lib/cgit/filters /usr/local/lib/cgit && \
+    mkdir -p /run/nginx /var/www/htdocs/cgit /usr/lib/cgit/filters /usr/local/lib/cgit /var/cache/cgit && \
     rm -rf /var/cache/apk/* /tmp/*
 
 # -----------------------------------------------------------------------------
@@ -145,6 +145,10 @@ RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
                /var/www/htdocs/cgit/robots.txt && \
     chmod -R 0755 /usr/lib/cgit/filters/ && \
     ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi && \
+    # /etc/cgitrc is on the read-only rootfs at runtime.
+    # Create a symlink in the image layer pointing to the git volume so
+    # entrypoint can write /var/lib/git/cgitrc without touching /etc.
+    ln -snf /var/lib/git/cgitrc /etc/cgitrc && \
     chmod u+x /usr/lib/cgit/filters/html-converters/md2html \
         /usr/lib/cgit/filters/syntax-highlighting.py \
         /entrypoint.sh && \
@@ -153,7 +157,11 @@ RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
 
 # Create dedicated runtime user (for nginx foreground process)
 # Add to nginx group so cgit user can access fcgiwrap socket
-RUN adduser -D -u 1001 cgit && adduser cgit nginx
+RUN adduser -D -u 1001 cgit && adduser cgit nginx && \
+    # Pre-add nginx and fcgiwrap to the git group so entrypoint doesn't need
+    # to modify /etc/group at runtime (read-only rootfs compatibility)
+    adduser nginx git && \
+    adduser fcgiwrap git
 
 # Install su-exec for privilege dropping in entrypoint
 RUN apk add --no-cache su-exec=0.3-r0
