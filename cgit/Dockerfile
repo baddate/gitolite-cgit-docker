@@ -51,8 +51,7 @@ ENV GIT_BUILD_OPTS="\
   NO_PERL=YesPlease \
   NO_PYTHON=YesPlease \
   NO_INSTALL_HARDLINKS=YesPlease \
-  INSTALL_SYMLINKS=1 \
-  USE_LIBPCRE2=YesPlease"
+  INSTALL_SYMLINKS=1"
 
 ENV CFLAGS="-Os -fomit-frame-pointer -flto=auto"
 ENV LDFLAGS="-Wl,--as-needed -flto=auto"
