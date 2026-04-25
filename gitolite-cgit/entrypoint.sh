@@ -58,7 +58,6 @@ mkdir -p /var/log/nginx       && chown nginx:nginx    /var/log/nginx     && chmo
 mkdir -p /var/lib/nginx/logs  && chown -R nginx:nginx /var/lib/nginx     && chmod -R 0755 /var/lib/nginx
 mkdir -p /tmp/nginx           && chown nginx:nginx    /tmp/nginx         && chmod 0755 /tmp/nginx
 
-ls -la /var/lib/nginx/
 # ── Services ──────────────────────────────────────────────────────────────────
 /usr/sbin/sshd -e
 
