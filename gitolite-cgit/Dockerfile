@@ -2,8 +2,10 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Build cgit from source (following official README with git clone)
 # -----------------------------------------------------------------------------
-FROM alpine:3.23 AS cgit_builder
-LABEL stage=cgit_builder
+FROM --platform=$BUILDPLATFORM alpine:3.23 AS cgit_builder
+
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
 
 # Alpine uses busybox ash (not POSIX sh) — needed for pipefail support
 SHELL ["/bin/ash", "-o", "pipefail", "-c"]
@@ -25,7 +27,10 @@ RUN apk add --no-cache \
 
 WORKDIR /usr/src
 
-RUN --mount=type=cache,target=/usr/src/cgit-archive,sharing=locked \
+# -----------------------------------------------------------------------------
+# cgit source (cache)
+# -----------------------------------------------------------------------------
+RUN --mount=type=cache,id=cgit-cache,target=/usr/src/cgit-archive,sharing=locked \
     set -euxo pipefail && \
     ENC_VER="$(printf '%s' "$CGIT_VER" | sed -e 's/%/%25/g' -e 's:/:%2F:g')" && \
     ENC_VER_DASH="$(printf '%s' "$CGIT_VER" | sed -e 's/%/%25/g' -e 's:/:-:g')" && \
@@ -36,22 +41,30 @@ RUN --mount=type=cache,target=/usr/src/cgit-archive,sharing=locked \
     tar xf "$ARCHIVE" -C /usr/src && \
     mv "/usr/src/${CGIT_VER}" /usr/src/cgit
 
-WORKDIR /usr/src/cgit
-
-# Compile cgit with build options optimized for Alpine
-# Cache git source tarball to avoid re-downloading from kernel.org every build
-RUN --mount=type=cache,target=/usr/src/git-archive,sharing=locked \
+# -----------------------------------------------------------------------------
+# git source + build (cache)
+# -----------------------------------------------------------------------------
+RUN --mount=type=cache,id=git-cache,target=/usr/src/git-archive,sharing=locked \
     set -eux && \
     GIT_TGZ="/usr/src/git-archive/git-${GIT_VER}.tar.xz" && \
     if [ ! -f "$GIT_TGZ" ]; then \
-        curl -fSL --retry 3 "https://www.kernel.org/pub/software/scm/git/git-${GIT_VER}.tar.xz" -o "$GIT_TGZ"; \
+        curl -fSL --retry 3 \
+          "https://www.kernel.org/pub/software/scm/git/git-${GIT_VER}.tar.xz" \
+          -o "$GIT_TGZ"; \
     fi && \
     tar xf "$GIT_TGZ" -C /usr/src && \
     cd "/usr/src/git-${GIT_VER}" && \
     make prefix=/usr/local all && \
-    make prefix=/usr/local install && \
+    make prefix=/usr/local install
+
+# -----------------------------------------------------------------------------
+# build cgit
+# -----------------------------------------------------------------------------
+WORKDIR /usr/src/cgit
+
+RUN set -eux && \
     rm -rf git && \
-    mv "git-${GIT_VER}" git && \
+    cp -r "/usr/src/git-${GIT_VER}" git && \
     make all \
       NO_GETTEXT=YesPlease \
       NO_REGEX=NeedsStartEnd \
