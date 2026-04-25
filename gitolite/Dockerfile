@@ -11,7 +11,9 @@ RUN apk add --no-cache \
 
 # runtime dirs
 RUN mkdir -p /var/lib/git /var/run/sshd && \
-    adduser -D -h /var/lib/git git && \
+    if ! id git >/dev/null 2>&1; then \
+        adduser -D -h /var/lib/git git; \
+    fi && \
     chown -R git:git /var/lib/git
 
 # ssh default config
