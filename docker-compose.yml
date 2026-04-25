@@ -21,6 +21,14 @@ services:
     container_name: cgit
     restart: unless-stopped
 
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+      - /var/cache/nginx
+
     ports:
       - "8080:80" # Web UI
 
