@@ -17,17 +17,17 @@ ARG GIT_VER=2.53.0
 # Install build tools and development libraries
 # Dependencies based on cgit README: libzip, libcrypto (OpenSSL), libssl (OpenSSL)
 RUN apk add --no-cache \
-    build-base=0.5-r3 \
-    openssl-dev=3.5.6-r0 \
-    zlib-dev=1.3.2-r0 \
-    lua5.3-dev=5.3.6-r6 \
-    pkgconf=2.5.1-r0 \
-    curl=8.17.0-r1 \
-    curl-dev=8.17.0-r1 \
-    perl=5.42.2-r0 \
-    perl-utils=5.42.2-r0 \
-    perl-dev=5.42.2-r0 \
-    expat-dev=2.7.5-r0
+    build-base=0.5 \
+    openssl-dev=3.5.6 \
+    zlib-dev=1.3.2 \
+    lua5.3-dev=5.3.6 \
+    pkgconf=2.5.1 \
+    curl=8.17.0 \
+    curl-dev=8.17.0 \
+    perl=5.42.2 \
+    perl-utils=5.42.2 \
+    perl-dev=5.42.2 \
+    expat-dev=2.7.5
 
 WORKDIR /usr/src
 
@@ -60,8 +60,12 @@ RUN --mount=type=cache,id=git-cache,target=/usr/src/git-archive,sharing=locked \
     cd "/usr/src/git-${GIT_VER}" && \
     make prefix=/usr/local all \
         NO_REGEX=NeedsStartEnd \
-        NO_GETTEXT=YesPlease && \
-    make prefix=/usr/local install
+        NO_GETTEXT=YesPlease \
+        NO_TCLTK=YesPlease \
+        NO_MSGFMT_EXT=YesPlease && \
+    make prefix=/usr/local install \
+        NO_TCLTK=YesPlease \
+        NO_MSGFMT_EXT=YesPlease
 
 # -----------------------------------------------------------------------------
 # build cgit
@@ -111,32 +115,32 @@ LABEL org.opencontainers.image.licenses="GPL-3.0"
 RUN set -e && \
     apk add --no-cache \
         # Runtime essentials
-        tini=0.19.0-r3 \
-        openssl=3.5.6-r0 \
-        zlib=1.3.2-r0 \
-        lua5.3=5.3.6-r6 \
+        tini=0.19.0 \
+        openssl=3.5.6 \
+        zlib=1.3.2 \
+        lua5.3=5.3.6 \
         curl \
         expat \
         perl \
         # Git & gitolite stack
-        # git=2.52.0-r0 \
-        # git-daemon=2.52.0-r0 \
-        gitolite=3.6.14-r0 \
-        openssh=10.2_p1-r0 \
+        # git=2.52.0 \
+        # git-daemon=2.52.0 \
+        gitolite=3.6.14 \
+        openssh=10.2_p1 \
         # Web server & CGI
-        nginx=1.28.3-r0 \
-        fcgiwrap=1.1.0-r9 \
-        spawn-fcgi=1.6.6-r0 \
+        nginx=1.28.3 \
+        fcgiwrap=1.1.0 \
+        spawn-fcgi=1.6.6 \
         # Syntax highlighting (python3 + pygments + markdown)
-        python3=3.12.13-r0 \
-        py3-markdown=3.10.0-r0 \
-        py3-pygments=2.19.2-r0 \
+        python3=3.12.13 \
+        py3-markdown=3.10.0 \
+        py3-pygments=2.19.2 \
         # Compression tools (cgit snapshots)
-        lzip=1.25-r0 \
-        xz=5.8.2-r0 \
-        zstd=1.5.7-r2 \
-        gzip=1.14-r2 \
-        bzip2=1.0.8-r6 && \
+        lzip=1.25 \
+        xz=5.8.2 \
+        zstd=1.5.7 \
+        gzip=1.14 \
+        bzip2=1.0.8 && \
     mkdir -p /run/nginx /var/www/htdocs/cgit /usr/lib/cgit/filters /usr/local/lib/cgit /var/cache/cgit && \
     rm -rf /var/cache/apk/* /tmp/*
 
@@ -201,7 +205,7 @@ RUN adduser -D -u 1001 cgit && adduser cgit nginx && \
     adduser fcgiwrap git
 
 # Install su-exec for privilege dropping in entrypoint
-RUN apk add --no-cache su-exec=0.3-r0
+RUN apk add --no-cache su-exec=0.3
 
 # Remove setuid/setgid bits — not needed in container context
 # EXCLUDE su-exec: it needs setuid to drop privileges at runtime
