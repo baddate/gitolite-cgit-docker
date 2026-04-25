@@ -196,12 +196,12 @@ COPY cgit/syntax-highlighting.py /usr/lib/cgit/filters/syntax-highlighting.py
 COPY cgit/catppuccin_mocha.py /usr/local/lib/cgit/catppuccin_mocha.py
 COPY cgit/catppuccin_macchiato.py /usr/local/lib/cgit/catppuccin_macchiato.py
 COPY cgit/catppuccin_latte.py /usr/local/lib/cgit/catppuccin_latte.py
-COPY cgit/sshd_config          /etc/ssh/sshd_config.default
 COPY cgit/gitolite.rc          /usr/local/share/gitolite.rc.default
 COPY cgit/cgitrc.template      /usr/local/share/cgitrc.template
 COPY cgit/nginx-cgit.conf      /usr/local/share/nginx-cgit.conf
 
 # 3. Gitolite triggers (medium)
+COPY gitolite/sshd_config          /etc/ssh/sshd_config.default
 COPY gitolite/auto-default-branch.sh /usr/lib/gitolite/triggers/auto-default-branch
 COPY gitolite/set-master-branch.sh /usr/lib/gitolite/triggers/set-master-branch
 
