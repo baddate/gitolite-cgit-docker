@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.4
+# syntax=docker/dockerfile:1.7
 # -----------------------------------------------------------------------------
 # Stage 1: Build cgit from source (following official README with git clone)
 # -----------------------------------------------------------------------------
@@ -20,7 +20,6 @@ RUN apk add --no-cache \
     build-base=0.5-r3 \
     openssl-dev=3.5.6-r0 \
     zlib-dev=1.3.2-r0 \
-    libzip-dev=1.11.4-r1 \
     lua5.3-dev=5.3.6-r6 \
     pkgconf=2.5.1-r0 \
     curl=8.17.0-r1 \
@@ -116,6 +115,9 @@ RUN set -e && \
         openssl=3.5.6-r0 \
         zlib=1.3.2-r0 \
         lua5.3=5.3.6-r6 \
+        curl \
+        expat \
+        perl \
         # Git & gitolite stack
         # git=2.52.0-r0 \
         # git-daemon=2.52.0-r0 \
