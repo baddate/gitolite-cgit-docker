@@ -182,8 +182,7 @@ COPY catppuccin_latte.py     /usr/local/lib/cgit/catppuccin_latte.py
 COPY cgitrc.template         /usr/local/share/cgitrc.template
 COPY nginx-cgit.conf         /etc/nginx/http.d/cgit.conf
 COPY nginx-default.conf      /etc/nginx/nginx.conf
-RUN echo "============================"
-RUN cat /etc/nginx/http.d/default.conf && rm -f /etc/nginx/http.d/default.conf
+RUN rm -f /etc/nginx/http.d/default.conf
 
 # -----------------------------------------------------------------------------
 # Entrypoint — changes most frequently
