@@ -17,7 +17,7 @@ ARG GIT_VER=2.53.0
 # Install build tools and development libraries
 # Dependencies based on cgit README: libzip, libcrypto (OpenSSL), libssl (OpenSSL)
 RUN apk add --no-cache \
-    build-base=0.5 \
+    build-base \
     openssl-dev \
     zlib-dev \
     lua5.3-dev \
@@ -126,7 +126,7 @@ RUN set -e && \
         # git \
         # git-daemon \
         gitolite \
-        openssh=10.2_p1 \
+        openssh \
         # Web server & CGI
         nginx \
         fcgiwrap \
@@ -136,10 +136,10 @@ RUN set -e && \
         py3-markdown \
         py3-pygments \
         # Compression tools (cgit snapshots)
-        lzip=1.25 \
+        lzip \
         xz \
         zstd \
-        gzip=1.14 \
+        gzip \
         bzip2 && \
     mkdir -p /run/nginx /var/www/htdocs/cgit /usr/lib/cgit/filters /usr/local/lib/cgit /var/cache/cgit && \
     rm -rf /var/cache/apk/* /tmp/*
