@@ -48,7 +48,10 @@ RUN --mount=type=cache,id=cgit-cache,target=/usr/src/cgit-archive,sharing=locked
 # -----------------------------------------------------------------------------
 # git source + build (cache)
 # -----------------------------------------------------------------------------
-ENV GIT_BUILD_OPTS="NO_REGEX=NeedsStartEnd NO_GETTEXT=YesPlease NO_TCLTK=YesPlease NO_MSGFMT_EXT=YesPlease"
+ENV GIT_BUILD_OPTS="NO_REGEX=NeedsStartEnd \
+                    NO_GETTEXT=YesPlease \
+                    NO_TCLTK=YesPlease \
+                    NO_MSGFMT_EXT=YesPlease"
 
 RUN --mount=type=cache,id=git-cache,target=/usr/src/git-archive,sharing=locked \
     set -eux && \
@@ -86,6 +89,16 @@ RUN set -eux; \
     echo "cgit size after strip:  ${after_bytes} bytes"; \
     echo "cgit size reduced:     $((before_bytes - after_bytes)) bytes"; \
     ls -lh cgit
+
+# strip git binaries
+RUN set -eux && \
+    # strip binaries
+    find /usr/local -type f -exec file {} \; | grep ELF | cut -d: -f1 | xargs -r strip && \
+    # remove unnecessary files
+    rm -rf \
+      /usr/local/share \
+      /usr/local/include \
+      /usr/local/lib/pkgconfig
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime Stage
@@ -146,15 +159,9 @@ RUN set -e && \
 
 # 1. Compiler builder assets (slowest, only changes on cgit version bump)
 # ---- COPY Git 2.53 ----
-RUN rm -f /usr/bin/git /usr/bin/git-receive-pack /usr/bin/git-upload-pack /usr/bin/git-shell
 COPY --from=cgit_builder /usr/local /usr/local
-# ENV PATH="/usr/local/bin:$PATH"
-RUN echo"========list /usr/local=========" && ls /usr/local
-RUN ln -sf /usr/local/bin/git /usr/bin/git && \
-    ln -sf /usr/local/bin/git-receive-pack /usr/bin/git-receive-pack && \
-    ln -sf /usr/local/bin/git-upload-pack /usr/bin/git-upload-pack && \
-    ln -sf /usr/local/bin/git-shell /usr/bin/git-shell && \
-    ln -sf /usr/local/libexec/git-core/git-daemon /usr/usr/bin/git-daemon 2>/dev/null || echo "=====no git-daemon======"
+ENV PATH="/usr/local/bin:/usr/local/libexec/git-core:$PATH"
+ENV GIT_EXEC_PATH=/usr/local/libexec/git-core
 
 COPY --from=cgit_builder /usr/src/cgit/cgit /var/www/htdocs/cgit/cgit
 COPY --from=cgit_builder /usr/src/cgit/cgit.css /var/www/htdocs/cgit/cgit.css
