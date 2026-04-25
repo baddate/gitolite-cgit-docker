@@ -56,12 +56,17 @@ jobs:
       # ─────────────────────────────────────────────
       - name: Set cache week
         run: echo "CACHE_WEEK=$(date +%Y-W%V)" >> $GITHUB_ENV
+
       - name: Build & Push
         id: build
         uses: docker/build-push-action@v7
         with:
           context: ./gitolite
           platforms: ${{ matrix.platform }}
+          build-args: |
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            REVISION=${{ github.sha }}
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
           push: true
           provenance: false
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE }},push-by-digest=true,name-canonical=true
