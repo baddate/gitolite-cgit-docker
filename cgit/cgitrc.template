@@ -47,7 +47,7 @@ cache-repo-ttl=5
 cache-root=/var/cache/cgit
 cache-root-ttl=5
 cache-scanrc-ttl=15
-cache-size=0
+cache-size=512
 cache-snapshot-ttl=5
 cache-static-ttl=-1
 

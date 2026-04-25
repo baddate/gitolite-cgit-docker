@@ -16,22 +16,33 @@ if [ ! -f /var/lib/git/cgitrc ]; then
 fi
 
 # ── nginx config ─────────────────────────────────────────
-# Only copy if not exists (idempotent)
 if [ ! -f /etc/nginx/http.d/cgit.conf ]; then
-  cp /usr/local/share/nginx-cgit.conf /etc/nginx/http.d/cgit.conf
+    cp /usr/local/share/nginx-cgit.conf /etc/nginx/http.d/cgit.conf
 fi
 
-
 # ── runtime dirs ─────────────────────────────────────────
-mkdir -p /run/fcgiwrap        && chown fcgiwrap:nginx /run/fcgiwrap && chmod 0750 /run/fcgiwrap
-mkdir -p /run/nginx           && chown nginx:nginx    /run/nginx   && chmod 0755 /run/nginx
-mkdir -p /var/log/nginx       && chown nginx:nginx    /var/log/nginx
-mkdir -p /tmp/nginx           && chown nginx:nginx    /tmp/nginx
+mkdir -p /run/fcgiwrap  && chown fcgiwrap:nginx /run/fcgiwrap && chmod 0750 /run/fcgiwrap
+mkdir -p /run/nginx     && chown nginx:nginx    /run/nginx    && chmod 0755 /run/nginx
+mkdir -p /var/log/nginx && chown nginx:nginx    /var/log/nginx
+mkdir -p /tmp/nginx     && chown nginx:nginx    /tmp/nginx
 
 # ── fcgiwrap ─────────────────────────────────────────────
-spawn-fcgi -s /run/fcgiwrap/fcgiwrap.socket \
+spawn-fcgi \
+    -s /run/fcgiwrap/fcgiwrap.socket \
     -u fcgiwrap -g nginx -M 0660 \
-    -f /usr/bin/fcgiwrap &
+    -f /usr/bin/fcgiwrap
 
-# ── nginx ───────────────────────────────────────────────-
+# FIX: wait for socket to be ready before starting nginx
+# avoids 502 on the first few requests after container start
+_timeout=50
+while [ ! -S /run/fcgiwrap/fcgiwrap.socket ]; do
+    if [ "$_timeout" -le 0 ]; then
+        echo "ERROR: fcgiwrap socket not ready after 5s" >&2
+        exit 1
+    fi
+    sleep 0.1
+    _timeout=$((_timeout - 1))
+done
+
+# ── nginx ─────────────────────────────────────────────────
 exec nginx -g "daemon off;"
