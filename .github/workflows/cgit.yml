@@ -76,6 +76,7 @@ jobs:
           mkdir -p /tmp/digests
           digest="${{ steps.build.outputs.digest }}"
           echo "Digest: $digest"
+          test -n "$digest"
           touch "/tmp/digests/${digest#sha256:}"
 
       - name: Upload digest artifact
