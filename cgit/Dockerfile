@@ -23,6 +23,7 @@ RUN apk add --no-cache \
     lua5.3-dev \
     pkgconf \
     curl \
+    curl-dev \
     expat-dev
 
 WORKDIR /usr/src
