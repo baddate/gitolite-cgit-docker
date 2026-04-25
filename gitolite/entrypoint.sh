@@ -30,9 +30,13 @@ if [ ! -f /var/lib/git/.ssh/authorized_keys ]; then
 fi
 
 # ── gitolite config ───────────────────────────────────────
-cp /usr/local/share/gitolite.rc.default /var/lib/git/.gitolite.rc
-chown git:git /var/lib/git/.gitolite.rc
-chmod 640 /var/lib/git/.gitolite.rc
+# FIX: idempotent — only copy default rc if one doesn't exist yet
+# Previously this ran unconditionally, wiping user customisations on restart
+if [ ! -f /var/lib/git/.gitolite.rc ]; then
+    cp /usr/local/share/gitolite.rc.default /var/lib/git/.gitolite.rc
+    chown git:git /var/lib/git/.gitolite.rc
+    chmod 640 /var/lib/git/.gitolite.rc
+fi
 
 # ── SSH permissions ───────────────────────────────────────
 if [ -d /var/lib/git/.ssh ]; then

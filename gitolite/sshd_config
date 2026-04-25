@@ -109,7 +109,7 @@ UseDNS no
 #Banner none
 
 # override default of no subsystems
-Subsystem	sftp	/usr/lib/ssh/sftp-server
+#Subsystem	sftp	/usr/lib/ssh/sftp-server  # disabled: not needed for gitolite
 
 # Example of overriding settings on a per-user basis
 #Match User anoncvs

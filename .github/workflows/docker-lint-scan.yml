@@ -4,13 +4,13 @@ on:
   push:
     branches: [master, dev]
     paths:
-      - "gitolite-cgit/Dockerfile"
-      - "gitolite-cgit/entrypoint.sh"
+      - "cgit/**"
+      - "gitolite/**"
       - ".github/workflows/docker-lint-scan.yml"
   pull_request:
     paths:
-      - "gitolite-cgit/Dockerfile"
-      - "gitolite-cgit/entrypoint.sh"
+      - "cgit/**"
+      - "gitolite/**"
   workflow_dispatch:
   schedule:
     - cron: "0 6 * * 1" # every Monday 06:00 UTC
@@ -22,20 +22,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Hadolint — Dockerfile
+      # FIX: lint both Dockerfiles (old workflow only linted the now-gone
+      # gitolite-cgit/Dockerfile which no longer exists)
+      - name: Hadolint — cgit/Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: gitolite-cgit/Dockerfile
+          dockerfile: cgit/Dockerfile
           ignore: DL3018,DL3059,DL3003
 
-      # - name: ShellCheck — entrypoint.sh
-      #   uses: ludeeus/action-shellcheck@2.0.0
-      #   with:
-      #     scandir: gitolite-cgit
-      #     severity: warning
+      - name: Hadolint — gitolite/Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: gitolite/Dockerfile
+          ignore: DL3018,DL3059,DL3003
+
+      # FIX: ShellCheck re-enabled; covers all entrypoints and helper scripts
+      - name: ShellCheck — cgit
+        uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          scandir: cgit
+          severity: warning
+
+      - name: ShellCheck — gitolite
+        uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          scandir: gitolite
+          severity: warning
 
   scan:
-    name: Trivy filesystem scan (fast)
+    name: Trivy filesystem scan
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -43,29 +58,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Trivy FS scan
+      # FIX: scan both directories, not the old merged path
+      - name: Trivy FS scan — cgit
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
-          scan-ref: gitolite-cgit
+          scan-ref: cgit
           format: sarif
-          output: trivy-results.sarif
+          output: trivy-cgit.sarif
           exit-code: "0"
           severity: CRITICAL,HIGH
           ignore-unfixed: true
 
-      - name: Check if Trivy SARIF exists
-        id: check-sarif
-        if: always()
-        run: |
-          if [ -f trivy-results.sarif ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
+      - name: Trivy FS scan — gitolite
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: gitolite
+          format: sarif
+          output: trivy-gitolite.sarif
+          exit-code: "0"
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
 
-      - name: Upload Trivy SARIF to GitHub Security
-        if: steps.check-sarif.outputs.exists == 'true'
+      - name: Upload Trivy SARIF — cgit
+        if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: trivy-results.sarif
+          sarif_file: trivy-cgit.sarif
+        continue-on-error: true
+
+      - name: Upload Trivy SARIF — gitolite
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-gitolite.sarif
+        continue-on-error: true

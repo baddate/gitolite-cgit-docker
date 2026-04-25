@@ -1,8 +1,25 @@
+# Version control
+
 .git/
 .gitignore
+
+# Documentation / repo metadata
+
 img/
-*.md
+_.md
+README_
+LICENSE\*
+
+# Local dev / compose
+
 docker-compose.yml
-.env*
+.env\*
 bootstrap.sh
-LICENSE
+
+# GitHub Actions (not needed in build context)
+
+.github/
+
+# Unused CSS variant (only cgit.css is used at runtime)
+
+cgit/cgit.github.css
