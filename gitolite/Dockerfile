@@ -1,6 +1,6 @@
 FROM alpine:3.23
 
-SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
+SHELL ["/bin/ash", "-euo", "pipefail", "-c"]
 
 RUN apk add --no-cache \
     git \
