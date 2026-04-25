@@ -1,6 +1,19 @@
 # syntax=docker/dockerfile:1.7
 FROM alpine:3.23
 
+ARG BUILD_DATE
+ARG REVISION
+ARG VERSION=latest
+
+LABEL org.opencontainers.image.created=${BUILD_DATE}
+LABEL org.opencontainers.image.revision=${REVISION}
+LABEL org.opencontainers.image.version=${VERSION}
+LABEL org.opencontainers.image.title="gitolite"
+LABEL org.opencontainers.image.description="Docker image with gitolite on Alpine"
+LABEL org.opencontainers.image.url="https://github.com/baddate/gitolite-cgit-docker"
+LABEL org.opencontainers.image.source="https://github.com/baddate/gitolite-cgit-docker"
+LABEL org.opencontainers.image.licenses="GPL-3.0"
+
 SHELL ["/bin/ash", "-euo", "pipefail", "-c"]
 
 RUN apk add --no-cache \
