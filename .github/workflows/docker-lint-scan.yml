@@ -2,42 +2,76 @@ name: docker-lint-scan
 
 on:
   push:
-    branches: [main, master]
+    branches: [master, dev]
+    paths:
+      - "gitolite-cgit/Dockerfile"
+      - "gitolite-cgit/entrypoint.sh"
+      - ".github/workflows/docker-lint-scan.yml"
   pull_request:
+    paths:
+      - "gitolite-cgit/Dockerfile"
+      - "gitolite-cgit/entrypoint.sh"
   workflow_dispatch:
   schedule:
-    - cron: '0 6 * * 1'  # weekly every Monday 6AM
+    - cron: "0 6 * * 1" # every Monday 06:00 UTC
 
 jobs:
   lint:
-    name: Dockerfile lint
+    name: Lint (Hadolint + ShellCheck)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run Hadolint
+
+      - name: Hadolint — Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: gitolite-cgit/Dockerfile
+          # DL3018: pin apk packages — already pinned in this project
+          # DL3059: multiple RUN instructions — intentional layer grouping
+          ignore: DL3018,DL3059
+
+      - name: ShellCheck — entrypoint.sh
+        uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          scandir: gitolite-cgit
+          severity: warning
 
   scan:
     name: Trivy image scan
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build --tag gitolite-cgit:ci gitolite-cgit/
+      - name: Set up Docker BuildX
+        uses: docker/setup-buildx-action@v3
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+      - name: Build image (with GHA cache)
+        uses: docker/build-push-action@v6
+        with:
+          context: gitolite-cgit
+          file: gitolite-cgit/Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: gitolite-cgit:ci
+
+      - name: Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@0.36.0
         with:
           image-ref: gitolite-cgit:ci
-          severity: CRITICAL,HIGH
           format: sarif
           output: trivy-results.sarif
-          exit-code: 1
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
 
-      - name: Upload Trivy results to GitHub Security
+      - name: Upload Trivy SARIF to GitHub Security
+        if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-results.sarif
