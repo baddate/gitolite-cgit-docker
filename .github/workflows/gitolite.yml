@@ -54,6 +54,8 @@ jobs:
       # ─────────────────────────────────────────────
       # Build and push image by digest (per-arch)
       # ─────────────────────────────────────────────
+      - name: Set cache week
+        run: echo "CACHE_WEEK=$(date +%Y-W%V)" >> $GITHUB_ENV
       - name: Build & Push
         id: build
         uses: docker/build-push-action@v7
@@ -66,8 +68,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
           # Use per-arch cache to avoid cross-arch pollution
-          cache-from: type=gha,scope=gitolite-${{ matrix.platform }}
-          cache-to: type=gha,scope=gitolite-${{ matrix.platform }},mode=max
+          cache-from: type=gha,scope=gitolite-${{ matrix.platform }}-${{ env.CACHE_WEEK }}
+          cache-to: type=gha,scope=gitolite-${{ matrix.platform }}-${{ env.CACHE_WEEK }},mode=max
 
       # ─────────────────────────────────────────────
       # Export digest as artifact (required for merge)
@@ -77,6 +79,7 @@ jobs:
           mkdir -p /tmp/digests
           digest="${{ steps.build.outputs.digest }}"
           echo "Digest: $digest"
+          test -n "$digest"
           touch "/tmp/digests/${digest#sha256:}"
 
       - name: Upload digest artifact
@@ -109,6 +112,7 @@ jobs:
     permissions:
       packages: write
       id-token: write
+      contents: read
 
     steps:
       - name: Download digest artifacts
