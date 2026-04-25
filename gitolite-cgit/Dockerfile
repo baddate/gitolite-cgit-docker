@@ -159,7 +159,31 @@ RUN set -e && \
 
 # 1. Compiler builder assets (slowest, only changes on cgit version bump)
 # ---- COPY Git 2.53 ----
-COPY --from=cgit_builder /usr/local /usr/local
+# git
+COPY --from=cgit_builder /usr/local/bin/git                              /usr/local/bin/git
+
+# gitolite push/fetch
+COPY --from=cgit_builder /usr/local/libexec/git-core/git-receive-pack   /usr/local/libexec/git-core/
+COPY --from=cgit_builder /usr/local/libexec/git-core/git-upload-pack    /usr/local/libexec/git-core/
+COPY --from=cgit_builder /usr/local/libexec/git-core/git-upload-archive /usr/local/libexec/git-core/
+
+# git daemon
+COPY --from=cgit_builder /usr/local/libexec/git-core/git-daemon         /usr/local/libexec/git-core/
+
+# gitolite builtin operation
+COPY --from=cgit_builder /usr/local/libexec/git-core/git-shell          /usr/local/libexec/git-core/
+
+# cgit (log/diff/tree/blame)
+COPY --from=cgit_builder /usr/local/libexec/git-core/git-cat-file       /usr/local/libexec/git-core/
+COPY --from=cgit_builder /usr/local/libexec/git-core/git-diff-tree      /usr/local/libexec/git-core/
+COPY --from=cgit_builder /usr/local/libexec/git-core/git-rev-list       /usr/local/libexec/git-core/
+COPY --from=cgit_builder /usr/local/libexec/git-core/git-rev-parse      /usr/local/libexec/git-core/
+COPY --from=cgit_builder /usr/local/libexec/git-core/git-for-each-ref   /usr/local/libexec/git-core/
+COPY --from=cgit_builder /usr/local/libexec/git-core/git-read-tree      /usr/local/libexec/git-core/
+
+# lib (if has .so)
+COPY --from=cgit_builder /usr/local/lib/git-core                        /usr/local/lib/git-core
+
 ENV PATH="/usr/local/bin:/usr/local/libexec/git-core:$PATH"
 ENV GIT_EXEC_PATH=/usr/local/libexec/git-core
 
