@@ -18,16 +18,16 @@ ARG GIT_VER=2.53.0
 # Dependencies based on cgit README: libzip, libcrypto (OpenSSL), libssl (OpenSSL)
 RUN apk add --no-cache \
     build-base=0.5 \
-    openssl-dev=3.5.6 \
-    zlib-dev=1.3.2 \
-    lua5.3-dev=5.3.6 \
-    pkgconf=2.5.1 \
-    curl=8.17.0 \
-    curl-dev=8.17.0 \
-    perl=5.42.2 \
-    perl-utils=5.42.2 \
-    perl-dev=5.42.2 \
-    expat-dev=2.7.5
+    openssl-dev \
+    zlib-dev \
+    lua5.3-dev \
+    pkgconf \
+    curl \
+    curl-dev \
+    perl \
+    perl-utils \
+    perl-dev \
+    expat-dev
 
 WORKDIR /usr/src
 
@@ -115,32 +115,32 @@ LABEL org.opencontainers.image.licenses="GPL-3.0"
 RUN set -e && \
     apk add --no-cache \
         # Runtime essentials
-        tini=0.19.0 \
-        openssl=3.5.6 \
-        zlib=1.3.2 \
-        lua5.3=5.3.6 \
+        tini \
+        openssl \
+        zlib \
+        lua5.3 \
         curl \
         expat \
         perl \
         # Git & gitolite stack
-        # git=2.52.0 \
-        # git-daemon=2.52.0 \
-        gitolite=3.6.14 \
+        # git \
+        # git-daemon \
+        gitolite \
         openssh=10.2_p1 \
         # Web server & CGI
-        nginx=1.28.3 \
-        fcgiwrap=1.1.0 \
-        spawn-fcgi=1.6.6 \
+        nginx \
+        fcgiwrap \
+        spawn-fcgi \
         # Syntax highlighting (python3 + pygments + markdown)
-        python3=3.12.13 \
-        py3-markdown=3.10.0 \
-        py3-pygments=2.19.2 \
+        python3 \
+        py3-markdown \
+        py3-pygments \
         # Compression tools (cgit snapshots)
         lzip=1.25 \
-        xz=5.8.2 \
-        zstd=1.5.7 \
+        xz \
+        zstd \
         gzip=1.14 \
-        bzip2=1.0.8 && \
+        bzip2 && \
     mkdir -p /run/nginx /var/www/htdocs/cgit /usr/lib/cgit/filters /usr/local/lib/cgit /var/cache/cgit && \
     rm -rf /var/cache/apk/* /tmp/*
 
@@ -150,8 +150,15 @@ RUN set -e && \
 
 # 1. Compiler builder assets (slowest, only changes on cgit version bump)
 # ---- COPY Git 2.53 ----
+RUN rm -f /usr/bin/git /usr/bin/git-receive-pack /usr/bin/git-upload-pack /usr/bin/git-shell
 COPY --from=cgit_builder /usr/local /usr/local
-ENV PATH="/usr/local/bin:$PATH"
+# ENV PATH="/usr/local/bin:$PATH"
+RUN echo"========list /usr/local=========" && ls /usr/local
+RUN ln -sf /usr/local/bin/git /usr/bin/git && \
+    ln -sf /usr/local/bin/git-receive-pack /usr/bin/git-receive-pack && \
+    ln -sf /usr/local/bin/git-upload-pack /usr/bin/git-upload-pack && \
+    ln -sf /usr/local/bin/git-shell /usr/bin/git-shell && \ 
+    ln -sf /usr/local/libexec/git-core/git-daemon /usr/usr/bin/git-daemon 2>/dev/null || echo "=====no git-daemon======"
 
 COPY --from=cgit_builder /usr/src/cgit/cgit /var/www/htdocs/cgit/cgit
 COPY --from=cgit_builder /usr/src/cgit/cgit.css /var/www/htdocs/cgit/cgit.css
