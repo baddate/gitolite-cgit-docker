@@ -15,15 +15,9 @@ if [ ! -f /var/lib/git/cgitrc ]; then
         printf 'root-desc=%s\n' "$CGIT_DESC" >> /var/lib/git/cgitrc
 fi
 
-# ── nginx config ─────────────────────────────────────────
-if [ ! -f /etc/nginx/http.d/cgit.conf ]; then
-    cp /usr/local/share/nginx-cgit.conf /etc/nginx/http.d/cgit.conf
-fi
-
 # ── runtime dirs ─────────────────────────────────────────
 mkdir -p /run/fcgiwrap  && chown fcgiwrap:nginx /run/fcgiwrap && chmod 0750 /run/fcgiwrap
 mkdir -p /run/nginx     && chown nginx:nginx    /run/nginx    && chmod 0755 /run/nginx
-mkdir -p /var/log/nginx && chown nginx:nginx    /var/log/nginx
 mkdir -p /tmp/nginx     && chown nginx:nginx    /tmp/nginx
 
 # ── fcgiwrap ─────────────────────────────────────────────
