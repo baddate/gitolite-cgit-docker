@@ -1,35 +1,42 @@
+version: "3.9"
+
 services:
-  app:
-    image: rusian/gitolite-cgit
-    container_name: gitolite-cgit
-    env_file: config.env
+  gitolite:
+    image: ghcr.io/baddate/gitolite-cgit-docker-gitolite:latest
+    container_name: gitolite
     restart: unless-stopped
-    volumes:
-      - ssh:/etc/ssh
-      - git:/var/lib/git
+
     ports:
-      - 22:22
-      - 80:80
-      - 9418:9418
-    security_opt:
-      - no-new-privileges:false # su-exec need to switch user
-    cap_drop:
-      - ALL
-    cap_add:
-      - CAP_NET_BIND_SERVICE # nginx bind 80
-      - CAP_CHOWN # entrypoint chown
-      - CAP_SETGID # su-exec
-      - CAP_SETUID # su-exec
-      - CAP_FOWNER # chmod
-      - CAP_DAC_OVERRIDE # sshd read host key
-    read_only: true
-    tmpfs:
-      - /run
-      - /tmp
-      - /var/cache/cgit
-      - /var/log/nginx
-      - /var/lib/nginx
-      - /etc/nginx/http.d
+      - "2222:22" # SSH access
+
+    volumes:
+      - git-data:/var/lib/git # gitolite home
+      - ssh-data:/etc/ssh # persistent host keys
+
+    networks:
+      - git-net
+
+  cgit:
+    image: ghcr.io/baddate/gitolite-cgit-docker-cgit:latest
+    container_name: cgit
+    restart: unless-stopped
+
+    ports:
+      - "8080:80" # Web UI
+
+    volumes:
+      - git-data:/var/lib/git:ro # read-only mount
+
+    depends_on:
+      - gitolite
+
+    networks:
+      - git-net
+
 volumes:
-  ssh:
-  git:
+  git-data:
+  ssh-data:
+
+networks:
+  git-net:
+    driver: bridge

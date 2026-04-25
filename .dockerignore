@@ -3,6 +3,6 @@
 img/
 *.md
 docker-compose.yml
-config.env*
+.env*
 bootstrap.sh
 LICENSE
