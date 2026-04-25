@@ -52,12 +52,13 @@ fi
 cp /usr/local/share/nginx-cgit.conf /etc/nginx/http.d/cgit.conf
 
 # ── Runtime dirs ──────────────────────────────────────────────────────────────
-mkdir -p /run/fcgiwrap        && chown fcgiwrap:nginx /run/fcgiwrap     && chmod 0750 /run/fcgiwrap
+mkdir -p /run/fcgiwrap        && chown fcgiwrap:nginx /run/fcgiwrap      && chmod 0750 /run/fcgiwrap
 mkdir -p /run/nginx           && chown nginx:nginx    /run/nginx         && chmod 0755 /run/nginx
 mkdir -p /var/log/nginx       && chown nginx:nginx    /var/log/nginx     && chmod 0755 /var/log/nginx
-mkdir -p /var/lib/nginx/logs  && chown -R nginx:nginx /var/lib/nginx/logs && chmod -R 0755 /var/lib/nginx/logs
+mkdir -p /var/lib/nginx/logs  && chown -R nginx:nginx /var/lib/nginx     && chmod -R 0755 /var/lib/nginx
 mkdir -p /tmp/nginx           && chown nginx:nginx    /tmp/nginx         && chmod 0755 /tmp/nginx
 
+ls -la /var/lib/nginx/
 # ── Services ──────────────────────────────────────────────────────────────────
 /usr/sbin/sshd -e
 
