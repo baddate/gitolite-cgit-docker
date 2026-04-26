@@ -27,7 +27,7 @@ RUN apk add --no-cache \
     deluser  git 2>/dev/null || true && \
     delgroup git 2>/dev/null || true && \
     addgroup -g 1000 git && \
-    adduser  -D -u 1000 -G git -h /var/lib/git -s /bin/sh git && \
+    adduser  -D -u 1000 -G git -h /var/lib/git git && \
     passwd   -u git && \
     mkdir -p /var/lib/git /etc/ssh && \
     chown -R 1000:1000 /var/lib/git && \
