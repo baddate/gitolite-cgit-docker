@@ -28,9 +28,6 @@ branch-sort=age
 # Enable ASCII art commit history graph on the log pages
 enable-commit-graph=1
 
-# Allow http transport git clone
-enable-http-clone=$ENABLE_HTTP_CLONE
-
 # Show number of affected files per commit on the log pages
 enable-log-filecount=1
 
@@ -133,8 +130,6 @@ readme=:INSTALL.txt
 readme=:install.txt
 readme=:INSTALL
 readme=:install
-
-snapshots=$CGIT_SNAPSHOT
 
 # Direct cgit to repository location managed by gitolite
 remove-suffix=0

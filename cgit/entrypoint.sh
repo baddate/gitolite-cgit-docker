@@ -2,17 +2,23 @@
 set -euo pipefail
 
 # ── cgitrc ───────────────────────────────────────────────
-if [ ! -f /var/lib/git/cgitrc ]; then
-    envsubst < /usr/local/share/cgitrc.template > /var/lib/git/cgitrc
+if [ ! -f /etc/cgitrc ]; then
+    envsubst < /usr/local/share/cgitrc.template > /etc/cgitrc
 
     [ -n "${CGIT_CLONE_PREFIX:-}" ] && \
-        printf 'clone-prefix=%s\n' "$CGIT_CLONE_PREFIX" >> /var/lib/git/cgitrc
+        printf 'clone-prefix=%s\n' "$CGIT_CLONE_PREFIX" >> /etc/cgitrc
 
     [ -n "${CGIT_ROOT_TITLE:-}" ] && \
-        printf 'root-title=%s\n' "$CGIT_ROOT_TITLE" >> /var/lib/git/cgitrc
+        printf 'root-title=%s\n' "$CGIT_ROOT_TITLE" >> /etc/cgitrc
 
     [ -n "${CGIT_DESC:-}" ] && \
-        printf 'root-desc=%s\n' "$CGIT_DESC" >> /var/lib/git/cgitrc
+        printf 'root-desc=%s\n' "$CGIT_DESC" >> /etc/cgitrc
+
+    [ -n "${ENABLE_HTTP_CLONE:-}" ] && \
+        printf 'enable-http-clone=%s\n' "$CGIT_DESC" >> /etc/cgitrc
+
+    [ -n "${CGIT_SNAPSHOT:-}" ] && \
+        printf 'snapshots=%s\n' "$CGIT_DESC" >> /etc/cgitrc
 fi
 
 # ── runtime dirs ─────────────────────────────────────────
@@ -26,7 +32,7 @@ spawn-fcgi \
     -u fcgiwrap -g nginx -M 0660 \
     -f /usr/bin/fcgiwrap
 
-# FIX: wait for socket to be ready before starting nginx
+# wait for socket to be ready before starting nginx
 # avoids 502 on the first few requests after container start
 _timeout=50
 while [ ! -S /run/fcgiwrap/fcgiwrap.socket ]; do
