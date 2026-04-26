@@ -9,7 +9,7 @@ mkdir -p /tmp/nginx     && chown nginx:nginx    /tmp/nginx
 
 # ── cgitrc ───────────────────────────────────────────────
 CONFIG=/tmp/cgitrc
-mkdir -p "$CONFIG" && chown fcgiwrap:nginx "$CONFIG" && chmod 0750 "$CONFIG"
+mkdir -p /tmp && cp /usr/local/share/cgitrc.template "$CONFIG" && chown fcgiwrap:nginx "$CONFIG" && chmod 0750 "$CONFIG"
 
 append_if_set() {
     key="$1"
