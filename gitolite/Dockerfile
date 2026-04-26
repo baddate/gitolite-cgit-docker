@@ -16,11 +16,16 @@ LABEL org.opencontainers.image.licenses="GPL-3.0"
 
 SHELL ["/bin/ash", "-euo", "pipefail", "-c"]
 
+# Pin git to a fixed UID/GID (1000:1000) so the Docker volume inherits the
+# correct ownership without needing a runtime chown.
+# su-exec replaces gosu and is tiny / statically linked on Alpine.
 RUN apk add --no-cache \
-        git gitolite openssh perl tini && \
-    id git >/dev/null 2>&1 || adduser -D -h /var/lib/git -s /bin/sh git && \
-    mkdir -p /var/lib/git && \
-    chown -R git:git /var/lib/git
+        git gitolite openssh perl tini su-exec && \
+    addgroup -g 1000 git && \
+    adduser  -D -u 1000 -G git -h /var/lib/git -s /bin/sh git && \
+    mkdir -p /var/lib/git /etc/ssh && \
+    chown -R 1000:1000 /var/lib/git && \
+    chmod 750 /var/lib/git
 
 COPY sshd_config            /etc/ssh/sshd_config.default
 COPY gitolite.rc            /usr/local/share/gitolite.rc.default
@@ -41,4 +46,7 @@ VOLUME ["/var/lib/git", "/etc/ssh"]
 
 EXPOSE 22
 
+# tini runs as root (needed to start sshd on port 22), but entrypoint drops
+# to git for all gitolite operations and the sshd process model handles its
+# own privilege separation internally.
 ENTRYPOINT ["/sbin/tini", "--", "/entrypoint.sh"]
