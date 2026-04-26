@@ -18,7 +18,7 @@ append_if_set() {
     key="$1"
     value="$2"
 
-    [ -n "${value:-}" ] && printf '%s=%s\n' "$key" "$value" >> "$CONFIG"
+    [ -n "${value:-}" ] && printf '\n%s=%s\n' "$key" "$value" >> "$CONFIG"
 }
 
 append_bool() {
