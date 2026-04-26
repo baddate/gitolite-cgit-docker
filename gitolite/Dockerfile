@@ -16,11 +16,16 @@ LABEL org.opencontainers.image.licenses="GPL-3.0"
 
 SHELL ["/bin/ash", "-euo", "pipefail", "-c"]
 
-# Pin git to a fixed UID/GID (1000:1000) so the Docker volume inherits the
-# correct ownership without needing a runtime chown.
-# su-exec replaces gosu and is tiny / statically linked on Alpine.
+# Pin git user/group to UID/GID 1000.
+# gitolite's apk post-install script may pre-create the git user/group with a
+# different ID, so we delete and recreate in the right order:
+#   1. deluser first (removes the user from the group)
+#   2. delgroup next (now safe, no members)
+#   3. re-add group then user with explicit IDs
 RUN apk add --no-cache \
         git gitolite openssh perl tini su-exec && \
+    deluser  git 2>/dev/null || true && \
+    delgroup git 2>/dev/null || true && \
     addgroup -g 1000 git && \
     adduser  -D -u 1000 -G git -h /var/lib/git -s /bin/sh git && \
     mkdir -p /var/lib/git /etc/ssh && \
@@ -30,9 +35,6 @@ RUN apk add --no-cache \
 COPY sshd_config            /etc/ssh/sshd_config.default
 COPY gitolite.rc            /usr/local/share/gitolite.rc.default
 
-# Trigger scripts referenced in gitolite.rc POST_GIT / POST_CREATE.
-# Placed under LOCAL_CODE so gitolite can discover them without requiring
-# a live gitolite-admin push.  The LOCAL_CODE path is set further below.
 COPY auto-default-branch.sh /usr/local/share/gitolite-local/triggers/auto-default-branch
 COPY set-master-branch.sh   /usr/local/share/gitolite-local/triggers/set-master-branch
 RUN chmod +x \
@@ -46,7 +48,4 @@ VOLUME ["/var/lib/git", "/etc/ssh"]
 
 EXPOSE 22
 
-# tini runs as root (needed to start sshd on port 22), but entrypoint drops
-# to git for all gitolite operations and the sshd process model handles its
-# own privilege separation internally.
 ENTRYPOINT ["/sbin/tini", "--", "/entrypoint.sh"]
