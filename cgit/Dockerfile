@@ -141,6 +141,7 @@ RUN apk add --no-cache \
         xz \
         zstd \
         bzip2 && \
+    addgroup fcgiwrap nginx && \
     mkdir -p \
         /run/nginx \
         /var/www/htdocs/cgit \
@@ -194,7 +195,7 @@ RUN rm -f /etc/nginx/http.d/default.conf
 # -----------------------------------------------------------------------------
 COPY entrypoint.sh /entrypoint.sh
 
-RUN chmod 0750 /var/www/htdocs/cgit/cgit && \
+RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
     chown -R root:nginx /var/www/htdocs/cgit && \
     chmod 0644 \
         /var/www/htdocs/cgit/cgit.css \
