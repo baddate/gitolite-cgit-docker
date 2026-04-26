@@ -56,6 +56,7 @@ ENV GIT_BUILD_OPTS="\
   NO_PYTHON=YesPlease \
   NO_ICONV=YesPlease \
   NO_EXPAT=YesPlease \
+  NO_SVN_TESTS=YesPlease \
   NO_LIBPCRE=YesPlease \
   NO_INSTALL_HARDLINKS=YesPlease \
   INSTALL_SYMLINKS=1"
@@ -174,6 +175,9 @@ COPY --from=builder \
     /usr/local/libexec/git-core/git-diff-tree \
     /usr/local/libexec/git-core/git-for-each-ref \
     /usr/local/libexec/git-core/git-read-tree \
+    /usr/local/libexec/git-core/git-archive \
+    /usr/local/libexec/git-core/git-upload-archive \
+    /usr/local/libexec/git-core/git-checkout-index \
     /usr/local/libexec/git-core/
 
 ENV PATH="/usr/local/bin:/usr/local/libexec/git-core:$PATH"
