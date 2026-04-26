@@ -11,8 +11,8 @@ mkdir -p /tmp/nginx     && chown nginx:nginx    /tmp/nginx
 CONFIG=/run/cgitrc
 mkdir -p $(dirname $CONFIG) /run/cgit-cache && \
 cp /usr/local/share/cgitrc.template "$CONFIG" && \
-chown fcgiwrap:nginx "$CONFIG" && \
-chmod 0644 "$CONFIG"
+chown fcgiwrap:nginx "$CONFIG" /run/cgit-cache && \
+chmod 0644 "$CONFIG" && chmod 0750 /run/cgit-cache
 
 append_if_set() {
     key="$1"
