@@ -4,6 +4,9 @@ services:
     container_name: gitolite
     restart: unless-stopped
 
+    # security_opt:
+    #   - no-new-privileges:true
+
     ports:
       - "2222:22" # SSH access
 
