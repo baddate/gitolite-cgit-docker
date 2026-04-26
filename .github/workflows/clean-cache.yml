@@ -1,6 +1,8 @@
 name: Cleanup Caches Over Size Limit
 
 on:
+  push:
+    - master
   schedule:
     - cron: "0 0 * * *"
   workflow_dispatch:
@@ -20,10 +22,10 @@ jobs:
           # consider lowering this threshold to 4000MB due to compression differences.
           THRESHOLD=$((8 * 1024 * 1024 * 1024))
 
-          echo "Fetching cache list (up to 1000 entries) to ensure accuracy..."
+          echo "Fetching cache list (up to 2000 entries) to ensure accuracy..."
           # Fetch data sorted by last accessed time (oldest first)
-          # Using --limit 1000 to avoid the default 30-item pagination limit
-          cache_data=$(gh cache list --limit 1000 --sort last_accessed_at --order asc --json id,sizeInBytes)
+          # Using --limit 2000 to avoid the default 30-item pagination limit
+          cache_data=$(gh cache list --limit 2000 --sort last_accessed_at --order asc --json id,sizeInBytes)
 
           # Calculate initial total size using jq
           total_size=$(echo "$cache_data" | jq '[.[].sizeInBytes | select(. != null)] | add // 0')
