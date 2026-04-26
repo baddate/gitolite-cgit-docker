@@ -13,6 +13,8 @@ SHELL ["/bin/ash", "-euo", "pipefail", "-c"]
 ARG CGIT_VER=cgit-1.3
 ARG CGIT_URL=https://git.zx2c4.com/cgit/snapshot
 ARG GIT_VER=2.53.0
+ARG CGIT_CONFIG=/tmp/cgitrc
+ARG CACHE_ROOT=/tmp/cache/cgit
 
 # openssl-dev: required by cgit (MD5 for ETag + Gravatar), not git itself
 RUN apk add --no-cache \
@@ -90,7 +92,9 @@ RUN set -eux && \
       NO_GETTEXT=YesPlease \
       NO_REGEX=NeedsStartEnd \
       LUA_PKGCONFIG=lua5.4 \
-      GIT_VER=${GIT_VER}
+      GIT_VER=${GIT_VER} \
+      CGIT_CONFIG=${CGIT_CONFIG} \
+      CACHE_ROOT=${CACHE_ROOT}
 
 # Merge strip + cleanup into one layer; batch file(1) via xargs for speed
 RUN set -eux && \
@@ -192,8 +196,6 @@ COPY entrypoint.sh /entrypoint.sh
 
 RUN chmod 0750 /var/www/htdocs/cgit/cgit && \
     chown -R root:nginx /var/www/htdocs/cgit && \
-    chown fcgiwrap:nginx /var/cache/cgit && \
-    chmod 0750 /var/cache/cgit && \
     chmod 0644 \
         /var/www/htdocs/cgit/cgit.css \
         /var/www/htdocs/cgit/cgit.png \
