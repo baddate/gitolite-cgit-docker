@@ -151,6 +151,7 @@ RUN apk add --no-cache \
     adduser  -D -u 1000 -G git -h /var/lib/git -s /sbin/nologin git && \
     passwd   -u git && \
     addgroup fcgiwrap git && \
+    addgroup fcgiwrap nginx && \
     mkdir -p \
         /run/nginx \
         /var/www/htdocs/cgit \
@@ -206,6 +207,7 @@ COPY entrypoint.sh /entrypoint.sh
 
 RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
     chown -R root:nginx /var/www/htdocs/cgit && \
+    chown -R root:nginx /usr/lib/cgit/filters/ && \
     chmod -R 0750 /usr/lib/cgit/filters/ && \
     ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi && \
     chmod u+x \
