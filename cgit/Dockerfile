@@ -190,24 +190,20 @@ RUN rm -f /etc/nginx/http.d/default.conf
 # -----------------------------------------------------------------------------
 COPY entrypoint.sh /entrypoint.sh
 
-# /var/cache/cgit owned by fcgiwrap so cgit can write cache entries
-RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
+RUN chmod 0750 /var/www/htdocs/cgit/cgit && \
     chown -R root:nginx /var/www/htdocs/cgit && \
     chown fcgiwrap:nginx /var/cache/cgit && \
-    chmod 0755 /var/cache/cgit && \
+    chmod 0750 /var/cache/cgit && \
     chmod 0644 \
         /var/www/htdocs/cgit/cgit.css \
         /var/www/htdocs/cgit/cgit.png \
         /var/www/htdocs/cgit/cgit.js \
         /var/www/htdocs/cgit/favicon.ico \
         /var/www/htdocs/cgit/robots.txt && \
-    chmod -R 0755 /usr/lib/cgit/filters/ && \
+    chmod -R 0750 /usr/lib/cgit/filters/ && \
     ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi && \
     ln -snf /var/lib/git/cgitrc /etc/cgitrc && \
-    chmod u+x \
-        /usr/lib/cgit/filters/html-converters/md2html \
-        /usr/lib/cgit/filters/syntax-highlighting.py \
-        /entrypoint.sh
+    chmod +x /entrypoint.sh
 
 EXPOSE 80
 
