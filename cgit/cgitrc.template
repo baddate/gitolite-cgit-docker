@@ -95,7 +95,9 @@ mimetype.xpm=image/x-xpixmap
 
 # Enable syntax highlighting
 source-filter=/usr/lib/cgit/filters/syntax-highlighting.py
-about-filter=/usr/lib/cgit/filters/about-formatting.sh
+about-filter=/usr/lib/cgit/filters/html-converters/md2html
+commit-filter=/usr/lib/cgit/filters/commit-links.sh
+email-filter=/usr/lib/cgit/filters/email-libravatar.lua
 
 # Include some more info about example.com on the index page
 root-readme=/var/www/htdocs/cgit/root-readme.md
@@ -137,7 +139,3 @@ remove-suffix=0
 project-list=/var/lib/git/projects.list
 section-from-path=1
 scan-path=/var/lib/git/repositories
-
-commit-filter=/usr/lib/cgit/filters/commit-links.sh
-
-email-filter=/usr/lib/cgit/filters/email-libravatar.lua
