@@ -137,3 +137,7 @@ remove-suffix=0
 project-list=/var/lib/git/projects.list
 section-from-path=1
 scan-path=/var/lib/git/repositories
+
+commit-filter=/usr/lib/cgit/filters/commit-links.sh
+
+email-filter=/usr/lib/cgit/filters/email-libravatar.lua

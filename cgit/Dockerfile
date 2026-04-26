@@ -134,6 +134,8 @@ LABEL org.opencontainers.image.licenses="GPL-3.0"
 RUN apk add --no-cache \
         tini \
         lua5.4 \
+        # email-libravatar.lua email-gravatar.lua
+        lua5.4-ossl \
         expat \
         nginx \
         fcgiwrap \
