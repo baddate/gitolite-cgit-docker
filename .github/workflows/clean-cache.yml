@@ -15,43 +15,54 @@ jobs:
       - name: Cleanup Caches and Report Final Size
         shell: bash
         run: |
-          THRESHOLD=$((9 * 1024 * 1024 * 1024))
+          # Define threshold: 8GB in bytes
+          # Note: If GitHub web UI shows 8GB but API shows 4GB,
+          # consider lowering this threshold to 4000MB due to compression differences.
+          THRESHOLD=$((8 * 1024 * 1024 * 1024))
 
-          echo "Checking current cache usage..."
+          echo "Fetching cache list (up to 1000 entries) to ensure accuracy..."
+          # Fetch data sorted by last accessed time (oldest first)
+          # Using --limit 1000 to avoid the default 30-item pagination limit
           cache_data=$(gh cache list --limit 1000 --sort last_accessed_at --order asc --json id,sizeInBytes)
 
-          total_size=$(echo "$cache_data" | jq '[.[].sizeInBytes] | add // 0')
+          # Calculate initial total size using jq
+          total_size=$(echo "$cache_data" | jq '[.[].sizeInBytes | select(. != null)] | add // 0')
           initial_gb=$(echo "scale=2; $total_size / 1024 / 1024 / 1024" | bc)
-          echo "Initial total cache size: ${initial_gb} GB"
+
+          echo "Initial total cache size (API reported): ${initial_gb} GB"
 
           if [ "$total_size" -le "$THRESHOLD" ]; then
-            echo "Total size is within limits. No cleanup needed."
+            echo "Current usage is within limits. No cleanup required."
           else
-            echo "Total size exceeds 8GB. Cleaning up oldest caches..."
+            echo "Total size exceeds threshold. Starting cleanup of oldest caches..."
 
             current_running_size=$total_size
 
+            # Loop through caches and delete until size is under threshold
             while read -r row; do
               if [ "$current_running_size" -le "$THRESHOLD" ]; then
+                echo "Target reached. Stopping cleanup."
                 break
               fi
 
               id=$(echo "$row" | jq -r '.id')
               size=$(echo "$row" | jq -r '.sizeInBytes')
 
-              gh cache delete "$id"
+              echo "Deleting cache ID: $id ($(echo "scale=2; $size / 1024 / 1024" | bc) MB)"
+              gh cache delete "$id" || echo "Failed to delete $id, skipping..."
+
+              # Subtract deleted size from running total
               current_running_size=$((current_running_size - size))
             done < <(echo "$cache_data" | jq -c '.[]')
-
-            echo "Cleanup sequence finished."
           fi
 
+          # Final status report
           echo "---------------------------------------"
           final_data=$(gh cache list --limit 1000 --json sizeInBytes)
-          final_size=$(echo "$final_data" | jq '[.[].sizeInBytes] | add // 0')
+          final_size=$(echo "$final_data" | jq '[.[].sizeInBytes | select(. != null)] | add // 0')
           final_gb=$(echo "scale=2; $final_size / 1024 / 1024 / 1024" | bc)
 
-          echo "Final cache usage after cleanup: ${final_gb} GB"
+          echo "Final cache usage: ${final_gb} GB"
           echo "---------------------------------------"
 
         env:
