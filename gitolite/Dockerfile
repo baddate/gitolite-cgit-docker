@@ -17,17 +17,18 @@ LABEL org.opencontainers.image.licenses="GPL-3.0"
 SHELL ["/bin/ash", "-euo", "pipefail", "-c"]
 
 # Pin git user/group to UID/GID 1000.
-# gitolite's apk post-install script may pre-create the git user/group with a
-# different ID, so we delete and recreate in the right order:
-#   1. deluser first (removes the user from the group)
-#   2. delgroup next (now safe, no members)
-#   3. re-add group then user with explicit IDs
+# gitolite's apk post-install script pre-creates the git user/group with a
+# random ID, so delete in order (user first, then group) and recreate.
+# passwd -u unlocks the account — adduser -D sets the password to '!' which
+# causes sshd's account check to reject public-key logins with
+# "User git not allowed because account is locked".
 RUN apk add --no-cache \
         git gitolite openssh perl tini su-exec && \
     deluser  git 2>/dev/null || true && \
     delgroup git 2>/dev/null || true && \
     addgroup -g 1000 git && \
     adduser  -D -u 1000 -G git -h /var/lib/git -s /bin/sh git && \
+    passwd   -u git && \
     mkdir -p /var/lib/git /etc/ssh && \
     chown -R 1000:1000 /var/lib/git && \
     chmod 750 /var/lib/git
