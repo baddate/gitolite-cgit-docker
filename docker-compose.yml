@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   gitolite:
     image: ghcr.io/baddate/gitolite-cgit-docker-gitolite:latest
