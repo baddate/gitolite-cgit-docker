@@ -11,26 +11,25 @@ if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
     ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ""
 fi
 
-# ── Volume ownership fix (only on first run or forced) ─────
-# Because the image pins git to UID/GID 1000 and Docker volumes inherit
-# the ownership baked into the image at VOLUME declaration time, this
-# chown should be a no-op on normal restarts.  It is kept here solely
-# to recover from volumes created by older image versions with a
-# different UID, and is skipped once the stamp file exists.
-stamp=/var/lib/git/.gitolite/.permissions-fixed
-if [ "${FORCE_CHOWN:-}" = "1" ] || [ ! -f "$stamp" ]; then
+# ── Volume ownership fix ───────────────────────────────────
+# Skipped after first run (stamp file) unless FORCE_CHOWN=1.
+# The image pins git to UID 1000 so this is normally a no-op.
+_stamp=/var/lib/git/.gitolite/.permissions-fixed
+_owner="$(stat -c '%u' /var/lib/git 2>/dev/null || echo 0)"
+if [ "${FORCE_CHOWN:-}" = "1" ] || [ ! -f "$_stamp" ] || [ "$_owner" != "1000" ]; then
     chown -R 1000:1000 /var/lib/git
     chmod 750 /var/lib/git
-    mkdir -p "$(dirname "$stamp")"
-    touch "$stamp"
-    chown 1000:1000 "$stamp"
+    mkdir -p "$(dirname "$_stamp")"
+    touch "$_stamp"
+    chown 1000:1000 "$_stamp"
 fi
 
 # ── gitolite init (run as git user) ────────────────────────
 if [ ! -f /var/lib/git/.ssh/authorized_keys ]; then
     echo "$SSH_KEY" > "/tmp/${SSH_KEY_NAME}.pub"
+    chmod 644 "/tmp/${SSH_KEY_NAME}.pub"
     su-exec git gitolite setup -pk "/tmp/${SSH_KEY_NAME}.pub"
-    rm "/tmp/${SSH_KEY_NAME}.pub"
+    rm -f "/tmp/${SSH_KEY_NAME}.pub"
 fi
 
 # ── gitolite config (run as git user) ──────────────────────
