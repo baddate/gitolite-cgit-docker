@@ -38,12 +38,12 @@ enable-log-linecount=1
 cache-about-ttl=15
 cache-dynamic-ttl=5
 cache-repo-ttl=5
-cache-root=/var/cache/cgit
+cache-root=/tmp/cache
 cache-root-ttl=5
 cache-scanrc-ttl=15
-cache-size=512
+cache-size=128
 cache-snapshot-ttl=5
-cache-static-ttl=-1
+cache-static-ttl=3600
 
 # Sort items in the repo list case sensitively. Default value: "1"
 case-sensitive-sort=1
