@@ -12,7 +12,7 @@ from catppuccin_latte import CatppuccinLatteStyle
 sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stdout.write('''
-<style nonce="f4eb1bb">
+<style>
 .markdown-body {
     font-size: 14px;
     line-height: 1.6;

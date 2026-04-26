@@ -25,6 +25,15 @@ RUN apk add --no-cache \
 COPY sshd_config            /etc/ssh/sshd_config.default
 COPY gitolite.rc            /usr/local/share/gitolite.rc.default
 
+# Trigger scripts referenced in gitolite.rc POST_GIT / POST_CREATE.
+# Placed under LOCAL_CODE so gitolite can discover them without requiring
+# a live gitolite-admin push.  The LOCAL_CODE path is set further below.
+COPY auto-default-branch.sh /usr/local/share/gitolite-local/triggers/auto-default-branch
+COPY set-master-branch.sh   /usr/local/share/gitolite-local/triggers/set-master-branch
+RUN chmod +x \
+        /usr/local/share/gitolite-local/triggers/auto-default-branch \
+        /usr/local/share/gitolite-local/triggers/set-master-branch
+
 COPY entrypoint.sh          /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 

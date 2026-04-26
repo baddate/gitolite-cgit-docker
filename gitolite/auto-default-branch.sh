@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ash
 
 info() { printf >&2 %s\\n "$*" ; }
 

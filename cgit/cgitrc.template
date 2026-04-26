@@ -37,9 +37,6 @@ enable-log-filecount=1
 # Show number of added/removed lines per commit on the log pages
 enable-log-linecount=1
 
-# Enable statistics per week, month and quarter
-max-stats=quarter
-
 # Cache
 cache-about-ttl=15
 cache-dynamic-ttl=5
