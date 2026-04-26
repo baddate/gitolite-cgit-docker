@@ -140,6 +140,7 @@ RUN apk add --no-cache \
         nginx \
         fcgiwrap \
         spawn-fcgi \
+        git \
         python3 \
         py3-markdown \
         py3-pygments \
@@ -166,22 +167,22 @@ RUN apk add --no-cache \
 # -----------------------------------------------------------------------------
 # Builder assets — slowest layer, only changes on version bump
 # -----------------------------------------------------------------------------
-COPY --from=builder /usr/local/bin/git /usr/local/bin/
+# COPY --from=builder /usr/local/bin/git /usr/local/bin/
 
-COPY --from=builder \
-    /usr/local/libexec/git-core/git-cat-file \
-    /usr/local/libexec/git-core/git-rev-list \
-    /usr/local/libexec/git-core/git-rev-parse \
-    /usr/local/libexec/git-core/git-diff-tree \
-    /usr/local/libexec/git-core/git-for-each-ref \
-    /usr/local/libexec/git-core/git-read-tree \
-    /usr/local/libexec/git-core/git-archive \
-    /usr/local/libexec/git-core/git-upload-archive \
-    /usr/local/libexec/git-core/git-checkout-index \
-    /usr/local/libexec/git-core/
+# COPY --from=builder \
+#     /usr/local/libexec/git-core/git-cat-file \
+#     /usr/local/libexec/git-core/git-rev-list \
+#     /usr/local/libexec/git-core/git-rev-parse \
+#     /usr/local/libexec/git-core/git-diff-tree \
+#     /usr/local/libexec/git-core/git-for-each-ref \
+#     /usr/local/libexec/git-core/git-read-tree \
+#     /usr/local/libexec/git-core/git-archive \
+#     /usr/local/libexec/git-core/git-upload-archive \
+#     /usr/local/libexec/git-core/git-checkout-index \
+#     /usr/local/libexec/git-core/
 
-ENV PATH="/usr/local/bin:/usr/local/libexec/git-core:$PATH"
-ENV GIT_EXEC_PATH=/usr/local/libexec/git-core
+# ENV PATH="/usr/local/bin:/usr/local/libexec/git-core:$PATH"
+# ENV GIT_EXEC_PATH=/usr/local/libexec/git-core
 
 COPY --from=builder /usr/src/cgit/cgit        /var/www/htdocs/cgit/cgit
 COPY --from=builder /usr/src/cgit/cgit.css    /var/www/htdocs/cgit/cgit.css
