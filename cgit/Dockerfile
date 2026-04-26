@@ -134,7 +134,6 @@ LABEL org.opencontainers.image.licenses="GPL-3.0"
 RUN apk add --no-cache \
         tini \
         lua5.4 \
-        # email-libravatar.lua email-gravatar.lua
         lua5.4-ossl \
         expat \
         nginx \
@@ -192,8 +191,8 @@ COPY --from=builder /usr/src/cgit/filters/    /usr/lib/cgit/filters/
 # Custom theme / filters — medium frequency
 # -----------------------------------------------------------------------------
 COPY cgit.css                /var/www/htdocs/cgit/cgit.css
-COPY md2html                 /usr/lib/cgit/filters/html-converters/md2html
-COPY syntax-highlighting.py  /usr/lib/cgit/filters/syntax-highlighting.py
+COPY filters/md2html                 /usr/lib/cgit/filters/html-converters/md2html
+COPY filters/syntax-highlighting.py  /usr/lib/cgit/filters/syntax-highlighting.py
 COPY catppuccin_mocha.py     /usr/local/lib/cgit/catppuccin_mocha.py
 COPY catppuccin_macchiato.py /usr/local/lib/cgit/catppuccin_macchiato.py
 COPY catppuccin_latte.py     /usr/local/lib/cgit/catppuccin_latte.py
@@ -212,8 +211,12 @@ RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
     chown -R root:nginx /usr/lib/cgit/filters/ && \
     chmod -R 0750 /usr/lib/cgit/filters/ && \
     ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi && \
-    chmod +x /entrypoint.sh && \
-    chmod -R +x /usr/lib/cgit/filters
+    chmod +x \
+        /usr/lib/cgit/filters/html-converters/md2html \
+        /usr/lib/cgit/filters/syntax-highlighting.py \
+        /usr/lib/cgit/filters/commit-links.sh \
+        /usr/lib/cgit/filters/email-libravatar.lua \
+        /entrypoint.sh
 
 EXPOSE 80
 
