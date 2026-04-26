@@ -13,8 +13,8 @@ SHELL ["/bin/ash", "-euo", "pipefail", "-c"]
 ARG CGIT_VER=cgit-1.3
 ARG CGIT_URL=https://git.zx2c4.com/cgit/snapshot
 ARG GIT_VER=2.53.0
-ARG CGIT_CONFIG=/tmp/cgitrc
-ARG CACHE_ROOT=/tmp/cache/cgit
+ARG CGIT_CONFIG=/run/cgitrc
+ARG CACHE_ROOT=/run/cgit-cache
 
 # openssl-dev: required by cgit (MD5 for ETag + Gravatar), not git itself
 RUN apk add --no-cache \
