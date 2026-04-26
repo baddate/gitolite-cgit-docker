@@ -148,21 +148,18 @@ RUN apk add --no-cache \
         xz \
         zstd \
         bzip2 && \
-    deluser  git 2>/dev/null || true && \
-    delgroup git 2>/dev/null || true && \
-    addgroup -g 1000 git && \
-    adduser  -D -u 1000 -G git -h /var/lib/git -s /sbin/nologin git && \
-    passwd   -u git && \
-    addgroup fcgiwrap git && \
-    addgroup fcgiwrap nginx && \
     mkdir -p \
         /run/nginx \
         /var/www/htdocs/cgit \
         /usr/lib/cgit/filters \
         /usr/local/lib/cgit \
-        /var/lib/nginx/logs \
-        /run/cgit-cache && \
+        /var/lib/nginx/logs && \
     rm -rf /var/cache/apk/* /tmp/*
+
+RUN addgroup -g 1000 git && \
+    adduser -D -u 1000 -G git -h /var/lib/git -s /sbin/nologin git && \
+    addgroup fcgiwrap git && \
+    addgroup fcgiwrap nginx
 
 # -----------------------------------------------------------------------------
 # Builder assets — slowest layer, only changes on version bump
@@ -212,9 +209,9 @@ RUN rm -f /etc/nginx/http.d/default.conf
 COPY entrypoint.sh /entrypoint.sh
 
 RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
-    chown -R root:nginx /var/www/htdocs/cgit && \
-    chown -R root:nginx /usr/lib/cgit/filters/ && \
-    chmod -R 0750 /usr/lib/cgit/filters/ && \
+    chown -R fcgiwrap:nginx /var/www/htdocs/cgit && \
+    chown -R fcgiwrap:nginx /usr/lib/cgit/filters/ && \
+    chmod -R 0755 /usr/lib/cgit/filters/ && \
     ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi && \
     chmod +x \
         /usr/lib/cgit/filters/html-converters/md2html \
