@@ -212,10 +212,8 @@ RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
     chown -R root:nginx /usr/lib/cgit/filters/ && \
     chmod -R 0750 /usr/lib/cgit/filters/ && \
     ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi && \
-    chmod u+x \
-        /usr/lib/cgit/filters/html-converters/md2html \
-        /usr/lib/cgit/filters/syntax-highlighting.py \
-        /entrypoint.sh
+    chmod +x /entrypoint.sh && \
+    chmod -R +x /usr/lib/cgit/filters
 
 EXPOSE 80
 
