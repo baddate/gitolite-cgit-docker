@@ -204,7 +204,10 @@ RUN chmod 0750 /var/www/htdocs/cgit/cgit && \
         /var/www/htdocs/cgit/robots.txt && \
     chmod -R 0750 /usr/lib/cgit/filters/ && \
     ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi && \
-    chmod +x /entrypoint.sh
+    chmod u+x \
+        /usr/lib/cgit/filters/html-converters/md2html \
+        /usr/lib/cgit/filters/syntax-highlighting.py \
+        /entrypoint.sh
 
 EXPOSE 80
 
