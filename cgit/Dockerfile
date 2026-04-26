@@ -202,7 +202,6 @@ RUN chmod 0750 /var/www/htdocs/cgit/cgit && \
         /var/www/htdocs/cgit/robots.txt && \
     chmod -R 0750 /usr/lib/cgit/filters/ && \
     ln -snf /var/www/htdocs/cgit/cgit /var/www/htdocs/cgit/cgit.cgi && \
-    ln -snf /var/lib/git/cgitrc /etc/cgitrc && \
     chmod +x /entrypoint.sh
 
 EXPOSE 80
