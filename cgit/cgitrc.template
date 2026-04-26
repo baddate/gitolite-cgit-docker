@@ -97,7 +97,7 @@ mimetype.xpm=image/x-xpixmap
 source-filter=/usr/lib/cgit/filters/syntax-highlighting.py
 about-filter=/usr/lib/cgit/filters/html-converters/md2html
 commit-filter=/usr/lib/cgit/filters/commit-links.sh
-email-filter=/usr/lib/cgit/filters/email-libravatar.lua
+email-filter=lua:/usr/lib/cgit/filters/email-libravatar.lua
 
 # Include some more info about example.com on the index page
 root-readme=/var/www/htdocs/cgit/root-readme.md
