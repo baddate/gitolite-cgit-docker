@@ -11,6 +11,7 @@ from catppuccin_latte import CatppuccinLatteStyle
 
 sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stdout.write("<style>")
 sys.stdout.write(HtmlFormatter(style=CatppuccinMacchiatoStyle, nobackground=True).get_style_defs('.highlight'))
 sys.stdout.write('\n@media (prefers-color-scheme: light) {\n')
 sys.stdout.write(HtmlFormatter(style=CatppuccinLatteStyle, nobackground=True).get_style_defs('.highlight'))
