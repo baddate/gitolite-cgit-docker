@@ -6,6 +6,9 @@ services:
 
     # security_opt:
     #   - no-new-privileges:true
+    # NOTE: gitolite's entrypoint runs as root briefly to set ownership then
+    # drops to the git user.  Enabling no-new-privileges here is safe once the
+    # container has been initialised; uncomment if your deployment allows it.
 
     ports:
       - "2222:22" # SSH access
