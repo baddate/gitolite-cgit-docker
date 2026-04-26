@@ -4,11 +4,16 @@ services:
     container_name: gitolite
     restart: unless-stopped
 
-    # security_opt:
-    #   - no-new-privileges:true
-    # NOTE: gitolite's entrypoint runs as root briefly to set ownership then
-    # drops to the git user.  Enabling no-new-privileges here is safe once the
-    # container has been initialised; uncomment if your deployment allows it.
+    # no-new-privileges:true is intentionally omitted here.
+    # sshd requires root at startup to bind port 22 and manage its internal
+    # privilege-separation children (ssh-privsep).  Setting no-new-privileges
+    # would break sshd's privsep model.  All actual git operations run as the
+    # unprivileged git user (UID 1000) via gitolite's ForceCommand — root is
+    # never involved in repository access.
+    # If you replace sshd with a port >= 1024 and a non-root listener, you
+    # can then safely add:
+    #   security_opt:
+    #     - no-new-privileges:true
 
     ports:
       - "2222:22" # SSH access
