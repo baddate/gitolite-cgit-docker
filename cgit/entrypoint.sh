@@ -9,7 +9,7 @@ mkdir -p /tmp/nginx     && chown nginx:nginx    /tmp/nginx
 
 # ── cgitrc ───────────────────────────────────────────────
 CONFIG=/run/cgitrc
-mkdir -p $(dirname $CONFIG) && \
+mkdir -p $(dirname $CONFIG) /run/cgit-cache && \
 cp /usr/local/share/cgitrc.template "$CONFIG" && \
 chown fcgiwrap:nginx "$CONFIG" && \
 chmod 0644 "$CONFIG"
