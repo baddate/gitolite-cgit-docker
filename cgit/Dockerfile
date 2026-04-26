@@ -85,13 +85,17 @@ RUN --mount=type=cache,id=git-cache-${TARGETARCH},target=/usr/src/git-archive,sh
 # -----------------------------------------------------------------------------
 WORKDIR /usr/src/cgit
 
+ENV CGIT_BUILD_OPTS="NO_ICONV=YesPlease \
+	NO_GETTEXT=YesPlease \
+	NO_TCLTK=YesPlease \
+	NO_SVN_TESTS=YesPlease \
+	NO_REGEX=NeedsStartEnd \
+	LUA_PKGCONFIG=lua5.4"
+
 RUN set -eux && \
     rm -rf git && \
     cp -al "/usr/src/git-${GIT_VER}" git && \
-    make all \
-      NO_GETTEXT=YesPlease \
-      NO_REGEX=NeedsStartEnd \
-      LUA_PKGCONFIG=lua5.4 \
+    make all $CGIT_BUILD_OPTS \
       GIT_VER=${GIT_VER} \
       CGIT_CONFIG=${CGIT_CONFIG} \
       CACHE_ROOT=${CACHE_ROOT}
@@ -141,7 +145,7 @@ RUN apk add --no-cache \
         xz \
         zstd \
         bzip2 && \
-    addgroup fcgiwrap nginx && \
+    addgroup fcgiwrap 1000 && \
     mkdir -p \
         /run/nginx \
         /var/www/htdocs/cgit \
