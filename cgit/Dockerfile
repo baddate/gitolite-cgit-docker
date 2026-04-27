@@ -45,27 +45,9 @@ RUN --mount=type=cache,id=cgit-cache-${TARGETARCH},target=/usr/src/cgit-archive,
     mv "/usr/src/${CGIT_VER}" /usr/src/cgit
 
 # -----------------------------------------------------------------------------
-# git source + build (cached per-arch)
-# Stripped to only what cgit needs: cat-file, rev-list, rev-parse,
-# diff-tree, for-each-ref, read-tree, and the git dispatcher binary.
+# git source (cached per-arch) — extracted only, not built standalone.
+# cgit's Makefile builds the git subset it needs internally via cgit.mk.
 # -----------------------------------------------------------------------------
-ENV GIT_BUILD_OPTS="\
-  NO_GETTEXT=YesPlease \
-  NO_TCLTK=YesPlease \
-  NO_CURL=YesPlease \
-  NO_REGEX=YesPlease \
-  NO_PERL=YesPlease \
-  NO_PYTHON=YesPlease \
-  NO_ICONV=YesPlease \
-  NO_EXPAT=YesPlease \
-  NO_SVN_TESTS=YesPlease \
-  NO_LIBPCRE=YesPlease \
-  NO_INSTALL_HARDLINKS=YesPlease \
-  INSTALL_SYMLINKS=1"
-
-ENV CFLAGS="-Os -fomit-frame-pointer -ffunction-sections -fdata-sections -flto=auto"
-ENV LDFLAGS="-Wl,--gc-sections -Wl,--as-needed -flto=auto"
-
 RUN --mount=type=cache,id=git-cache-${TARGETARCH},target=/usr/src/git-archive,sharing=locked \
     set -eux && \
     GIT_TGZ="/usr/src/git-archive/git-${GIT_VER}.tar.xz" && \
@@ -74,10 +56,7 @@ RUN --mount=type=cache,id=git-cache-${TARGETARCH},target=/usr/src/git-archive,sh
           "https://www.kernel.org/pub/software/scm/git/git-${GIT_VER}.tar.xz" \
           -o "$GIT_TGZ"; \
     fi && \
-    tar xf "$GIT_TGZ" -C /usr/src && \
-    cd "/usr/src/git-${GIT_VER}" && \
-    make prefix=/usr/local all $GIT_BUILD_OPTS && \
-    make prefix=/usr/local install $GIT_BUILD_OPTS
+    tar xf "$GIT_TGZ" -C /usr/src
 
 # -----------------------------------------------------------------------------
 # Build cgit (which builds the git subset it needs internally via cgit.mk)
@@ -103,12 +82,8 @@ RUN --mount=type=cache,id=git-cache-${TARGETARCH},target=/usr/src/git-archive,sh
 # -----------------------------------------------------------------------------
 WORKDIR /usr/src/cgit
 
-ENV CGIT_BUILD_OPTS="NO_ICONV=YesPlease \
-	NO_GETTEXT=YesPlease \
-	NO_TCLTK=YesPlease \
-	NO_SVN_TESTS=YesPlease \
-	NO_REGEX=NeedsStartEnd \
-	LUA_PKGCONFIG=lua5.4"
+ENV CFLAGS="-Os -fomit-frame-pointer -ffunction-sections -fdata-sections -flto=auto"
+ENV LDFLAGS="-Wl,--gc-sections -Wl,--as-needed -flto=auto"
 
 RUN set -eux && \
     rm -rf git && \
@@ -126,14 +101,7 @@ RUN set -eux && \
       CGIT_CONFIG=${CGIT_CONFIG} \
       CACHE_ROOT=${CACHE_ROOT}
 
-# Merge strip + cleanup into one layer; batch file(1) via xargs for speed
-RUN set -eux && \
-    strip cgit && \
-    find /usr/local -type f | xargs -r file | grep ELF | cut -d: -f1 | xargs -r strip && \
-    rm -rf \
-      /usr/local/share \
-      /usr/local/include \
-      /usr/local/lib/pkgconfig
+RUN set -eux && strip cgit
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime
@@ -155,8 +123,14 @@ LABEL org.opencontainers.image.url="https://github.com/baddate/gitolite-cgit-doc
 LABEL org.opencontainers.image.source="https://github.com/baddate/gitolite-cgit-docker"
 LABEL org.opencontainers.image.licenses="GPL-3.0"
 
-# gzip omitted — busybox already provides it
-# py3-markdown kept — required by md2html filter
+# Compression tools called as child processes by cgit's snapshot code:
+#   gzip  — busybox already provides it (handles tar.gz)
+#   bzip2 — tar.bz2
+#   xz    — tar.xz
+#   zstd  — tar.zst
+#   lzip  — tar.lz
+# py3-markdown: required by md2html about-filter
+# py3-pygments: required by syntax-highlighting.py source-filter
 RUN apk add --no-cache \
         tini \
         lua5.4 \
@@ -165,7 +139,6 @@ RUN apk add --no-cache \
         nginx \
         fcgiwrap \
         spawn-fcgi \
-        git \
         python3 \
         py3-markdown \
         py3-pygments \
@@ -185,8 +158,6 @@ RUN apk add --no-cache \
 # ── Groups only — no git user needed in this container ───────────────────────
 # gitrepos(GID 2000): shared read-access group for git repositories.
 #   Must match GID 2000 in the gitolite container (enforced by -g 2000).
-#   fcgiwrap joins gitrepos to read /var/lib/git/repositories (mounted :ro).
-#   No git user is created here — cgit is purely a read-only viewer.
 # nginx group: fcgiwrap joins so nginx can access the fcgiwrap socket.
 RUN addgroup -g 2000 gitrepos && \
     addgroup fcgiwrap gitrepos && \
@@ -195,23 +166,6 @@ RUN addgroup -g 2000 gitrepos && \
 # -----------------------------------------------------------------------------
 # Builder assets — slowest layer, only changes on version bump
 # -----------------------------------------------------------------------------
-# COPY --from=builder /usr/local/bin/git /usr/local/bin/
-
-# COPY --from=builder \
-#     /usr/local/libexec/git-core/git-cat-file \
-#     /usr/local/libexec/git-core/git-rev-list \
-#     /usr/local/libexec/git-core/git-rev-parse \
-#     /usr/local/libexec/git-core/git-diff-tree \
-#     /usr/local/libexec/git-core/git-for-each-ref \
-#     /usr/local/libexec/git-core/git-read-tree \
-#     /usr/local/libexec/git-core/git-archive \
-#     /usr/local/libexec/git-core/git-upload-archive \
-#     /usr/local/libexec/git-core/git-checkout-index \
-#     /usr/local/libexec/git-core/
-
-# ENV PATH="/usr/local/bin:/usr/local/libexec/git-core:$PATH"
-# ENV GIT_EXEC_PATH=/usr/local/libexec/git-core
-
 COPY --from=builder /usr/src/cgit/cgit        /var/www/htdocs/cgit/cgit
 COPY --from=builder /usr/src/cgit/cgit.css    /var/www/htdocs/cgit/cgit.css
 COPY --from=builder /usr/src/cgit/cgit.png    /var/www/htdocs/cgit/cgit.png
