@@ -390,7 +390,7 @@ scan-hidden-path=0
 
 ## Path to a file listing subdirectories (relative to scan-path) to load
 ## as git repositories. Must be defined before scan-path.
-project-list=/var/lib/git/projects.list
+#project-list=/var/lib/git/projects.list
 
 ## Default readme file(s) to look for in each repository's default branch.
 ## May be specified multiple times; the first match is used.
