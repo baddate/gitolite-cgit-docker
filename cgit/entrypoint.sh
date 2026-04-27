@@ -68,11 +68,26 @@ echo "Configuration injection complete."
 #
 if [ -n "${REPO_INVALIDATE_SECRET:-}" ]; then
     SECRET="$REPO_INVALIDATE_SECRET"
+
     socat TCP-LISTEN:9000,bind=0.0.0.0,fork,reuseaddr \
-        EXEC:"sh -c 'read token; [ \"\$token\" = \"$SECRET\" ] && find /run/cgit-cache -maxdepth 1 -name rc-* -delete'" &
-    echo "cache invalidation listener started on :9000"
+        EXEC:"/bin/sh -c '
+            read token
+            echo \"[cgit] received: \$token\" >&2
+
+            if [ \"\$token\" = \"$SECRET\" ]; then
+                find /run/cgit-cache -maxdepth 1 -name rc-* -delete
+                echo \"[cgit] cache invalidated\" >&2
+                echo OK
+            else
+                echo \"[cgit] invalid token\" >&2
+                echo FAIL
+            fi
+        '" \
+        2>&1 &
+
+    echo "[cgit] cache invalidation listener started on :9000"
 else
-    echo "REPO_INVALIDATE_SECRET not set, cache invalidation listener disabled" >&2
+    echo "[cgit] REPO_INVALIDATE_SECRET not set, disabled" >&2
 fi
 
 # ── fcgiwrap ──────────────────────────────────────────────────────────────────
