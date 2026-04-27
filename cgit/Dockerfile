@@ -85,9 +85,11 @@ WORKDIR /usr/src/cgit
 ENV CFLAGS="-Os -fomit-frame-pointer -ffunction-sections -fdata-sections -flto=auto"
 ENV LDFLAGS="-Wl,--gc-sections -Wl,--as-needed -flto=auto"
 
+COPY cgit-scp-clone-url.patch /usr/src/cgit/
 RUN set -eux && \
     rm -rf git && \
     cp -al "/usr/src/git-${GIT_VER}" git && \
+    patch -p1 < cgit-scp-clone-url.patch && \
     make all \
       NO_GETTEXT=YesPlease \
       NO_TCLTK=YesPlease \
