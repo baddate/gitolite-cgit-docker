@@ -48,7 +48,13 @@ append_bool() {
 append_if_set "clone-prefix" "$CGIT_CLONE_PREFIX"
 append_if_set "root-title"   "$CGIT_ROOT_TITLE"
 append_if_set "root-desc"    "$CGIT_DESC"
-append_if_set "snapshots"    "$CGIT_SNAPSHOT"
+# snapshots= MUST be set before scan-path= in cgitrc (cgit reads repo list at
+# scan-path parse time and inherits ctx.cfg.snapshots at that moment).
+# The template already contains a default snapshots= line before scan-path;
+# if CGIT_SNAPSHOT is set we replace it in-place rather than appending.
+if [ -n "${CGIT_SNAPSHOT:-}" ]; then
+    sed -i "s|^snapshots=.*|snapshots=${CGIT_SNAPSHOT}|" "$CONFIG"
+fi
 
 append_bool "enable-http-clone" "$ENABLE_HTTP_CLONE"
 

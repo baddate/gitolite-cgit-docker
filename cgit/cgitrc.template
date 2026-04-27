@@ -134,7 +134,14 @@ readme=:install.txt
 readme=:INSTALL
 readme=:install
 
-# Direct cgit to repository location managed by gitolite
+# Snapshots — enabled archive formats for the download links.
+# MUST appear before scan-path: cgit initialises repo->snapshots from
+# ctx.cfg.snapshots at scan time; any value set after scan-path is ignored.
+snapshots=tar.gz tar.xz zip
+
+# Direct cgit to repository location managed by gitolite.
+# scan-path MUST be last: it triggers an immediate scan_tree() call that
+# inherits the snapshot (and other) settings in effect at that point.
 remove-suffix=0
 project-list=/var/lib/git/projects.list
 section-from-path=1
