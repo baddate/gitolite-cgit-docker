@@ -10,6 +10,15 @@
 
 
 ## ============================================================
+## VIRTUAL ROOT / URL REWRITING
+## ============================================================
+
+## Root URL for all cgit links. When set, cgit generates "virtual" URLs
+## like /cgit/tree/README instead of ?r=cgit&p=tree&path=README.
+virtual-root=/
+
+
+## ============================================================
 ## FILTERS
 ## ============================================================
 
@@ -233,7 +242,7 @@ enable-remote-branches=0
 ## Valid values: tar tar.gz tar.bz2 tar.lz tar.xz tar.zst zip
 ## Special value "all" enables every format.
 ## Default: none (snapshots disabled).
-#snapshots=
+snapshots=tar.gz zip
 
 
 ## ============================================================
@@ -298,7 +307,7 @@ enable-http-clone=0
 ## ============================================================
 
 ## When set to "1", hides full author email addresses.
-noplainemail=0
+noplainemail=1
 
 ## When set to "1", uses server timezone for commit and tag timestamps.
 local-time=0
@@ -346,15 +355,6 @@ mimetype.svg=image/svg+xml
 mimetype.txt=text/plain
 mimetype.webp=image/webp
 mimetype.xml=application/xml
-
-
-## ============================================================
-## VIRTUAL ROOT / URL REWRITING
-## ============================================================
-
-## Root URL for all cgit links. When set, cgit generates "virtual" URLs
-## like /cgit/tree/README instead of ?r=cgit&p=tree&path=README.
-#virtual-root=
 
 
 ## ============================================================
