@@ -1,71 +1,337 @@
-#
-# cgit config
-#
+##
+## cgitrc — complete configuration reference (cgit 1.3)
+##
+## All global settings are listed with their default values.
+## Lines beginning with '#' and blank lines are ignored.
+## IMPORTANT: scan-path triggers an immediate repository scan when parsed.
+##            Any settings that affect repositories (snapshots, etc.) MUST
+##            appear before scan-path in the file.
+##
 
-virtual-root=/
 
-# Use a custom logo
-logo=/cgit.png
+## ============================================================
+## FILTERS
+## ============================================================
 
-# Specify the css url
-css=/cgit.css
+## Command invoked to format about pages (top-level and per-repo).
+## Receives file content on STDIN, filename as first argument.
+## Prefix with "lua:" to use a built-in Lua interpreter.
+about-filter=/usr/lib/cgit/filters/about-formatting.sh
 
-# Enable configuration from external management, for example: gitolite
-enable-git-config=1
+## Command invoked to authenticate repository access.
+## If unspecified, no authentication is performed.
+#auth-filter=
 
-# Show extra links for each repository on the index page
-enable-index-links=1
+## Command invoked to format commit messages.
+## Receives message on STDIN, writes formatted text to STDOUT.
+#commit-filter=
 
-# Show owner
-enable-index-owner=1
+## Command invoked to format committer/author/tagger names and email addresses.
+## Receives email address and origin-page string as arguments, text on STDIN.
+email-filter=lua:/usr/lib/cgit/filters/email-libravatar.lua
 
-# Enable blame page and create links to it from tree page
-enable-blame=1
+## Command invoked to format the Owner column on the repository index page.
+## Receives owner text on STDIN, writes formatted HTML to STDOUT.
+#owner-filter=
 
-# Sort branches by date
-branch-sort=age
+## Command invoked to format plaintext blobs in the tree view.
+## Receives blob content on STDIN, filename as first argument.
+source-filter=/usr/lib/cgit/filters/syntax-highlighting.py
 
-# Enable ASCII art commit history graph on the log pages
-enable-commit-graph=1
 
-# Show number of affected files per commit on the log pages
-enable-log-filecount=1
+## ============================================================
+## CACHE
+## All TTL values are in minutes.
+## Negative = cache indefinitely. Zero = disable cache for that page type.
+## ============================================================
 
-# Show number of added/removed lines per commit on the log pages
-enable-log-linecount=1
-
-# Cache
-cache-about-ttl=15
-cache-dynamic-ttl=5
-cache-repo-ttl=5
-cache-root=/run/cgit-cache
-cache-root-ttl=5
-cache-scanrc-ttl=15
+## Maximum number of cache entries. 0 disables caching entirely.
 cache-size=128
-cache-snapshot-ttl=5
+
+## TTL for the repository about page.
+cache-about-ttl=15
+
+## TTL for repository pages accessed without a fixed SHA1.
+cache-dynamic-ttl=5
+
+## TTL for the repository summary page.
+cache-repo-ttl=5
+
+## TTL for the repository index page.
+cache-root-ttl=5
+
+## TTL for the result of scanning a path for git repositories.
+cache-scanrc-ttl=15
+
+## TTL for repository pages accessed with a fixed SHA1.
+## Default -1 means cache indefinitely.
 cache-static-ttl=3600
 
-# Sort items in the repo list case sensitively. Default value: "1"
-case-sensitive-sort=1
+## TTL for snapshot downloads.
+cache-snapshot-ttl=5
 
-# Specifies the maximum size of a blob to display HTML for in KBytes. Default value: "0" (limit disabled)
-max-blob-size=2048
-
-# Specifies the number of entries to list per page on the repository index page. Default value: "50".
-max-repo-count=250
+## Directory used to store cgit cache entries.
+## Supports macro expansion ($VARIABLE).
+# cache-root=/var/cache/cgit
 
 
-# Specifies the maximum number of repo description characters to display on the repository index page.
-# Default value: "80"
+## ============================================================
+## CLONE URLS
+## ============================================================
+
+## Space-separated list of common URL prefixes for clone links.
+## Used only when repo.clone-url is unspecified.
+## Supports macro expansion ($CGIT_REPO_URL etc.).
+#clone-prefix=
+
+## Space-separated list of clone URL templates.
+## Used only when repo.clone-url is unspecified.
+## Supports macro expansion.
+#clone-url=
+
+
+## ============================================================
+## APPEARANCE
+## ============================================================
+
+## URL of the CSS stylesheet included in all pages.
+## May be specified multiple times to include multiple stylesheets.
+css=/cgit.css
+
+## URL of the JavaScript file included in all pages.
+## Set to empty string to disable.
+js=/cgit.js
+
+## URL of the favicon (shortcut icon).
+favicon=/favicon.ico
+
+## URL of the logo image displayed on all pages.
+logo=/cgit.png
+
+## URL loaded when clicking the cgit logo.
+## Default: repository index page URL.
+#logo-link=
+
+## Content of a file included verbatim at the bottom of every page,
+## replacing the standard "generated by..." message.
+#footer=
+
+## Content of a file included verbatim in the HTML <head> section.
+#head-include=
+
+## Content of a file included verbatim at the top of every page.
+#header=
+
+## When set to "1", generates an HTML fragment suitable for embedding
+## in other pages (no surrounding HTML structure).
+#embedded=
+
+## When set to "1", omits the standard header on all pages.
+#noheader=
+
+
+## ============================================================
+## REPOSITORY INDEX
+## ============================================================
+
+## Heading text on the repository index page.
+# root-title=Git Repository Browser
+
+## Subheading text on the repository index page.
+# root-desc=a fast webinterface for the git dscm
+
+## Content of a file included verbatim below the "about" link
+## on the repository index page.
+root-readme=/var/www/htdocs/cgit/readme.md
+
+## When set to "1", displays the owner of each repo on the index page.
+enable-index-owner=1
+
+## When set to "1", generates extra summary/commit/tree links per repo
+## on the index page.
+enable-index-links=1
+
+## Number of repositories to display per page on the index.
+## Set to "0" to show all without pagination.
+max-repo-count=50
+
+## Maximum number of repository description characters shown on the index page.
 max-repodesc-length=80
 
-# Set the default maximum statistics period. Valid values are "week", "month", "quarter" and "year".
-# If unspecified, statistics are disabled. Default value: none
+## How repositories within each section are sorted.
+## Valid values: "name", "age".
+repository-sort=name
+
+## When set to "1", sorts repository sections by name.
+## Set to "0" to preserve the order from cgitrc.
+section-sort=1
+
+## When set to "1", sorts repository and section names case-sensitively.
+case-sensitive-sort=1
+
+
+## ============================================================
+## LOG / COMMIT VIEW
+## ============================================================
+
+## Number of entries per page in the log view.
+max-commit-count=50
+
+## Maximum commit message characters shown in the log view.
+max-message-length=80
+
+## When set to "1", prints the number of modified files per commit
+## in the log view.
+enable-log-filecount=1
+
+## When set to "1", prints the number of added/removed lines per commit
+## in the log view.
+enable-log-linecount=1
+
+## When set to "1", renders an ASCII-art commit graph in the log view.
+enable-commit-graph=1
+
+## When set to "1", allows users to follow a file through renames in log view.
+enable-follow-links=1
+
+## When set to "1", uses the parent commit subject as the link text for
+## parent commit links in the commit view.
+enable-subject-links=1
+
+## Commit ordering in the log. Valid values: "date", "topo".
+## Unset uses git's default ordering.
+#commit-sort=
+
+
+## ============================================================
+## REFS / BRANCHES / TAGS
+## ============================================================
+
+## Number of branches shown in the repository summary view.
+summary-branches=10
+
+## Number of tags shown in the repository summary view.
+summary-tags=10
+
+## Number of log entries shown in the repository summary view.
+summary-log=10
+
+## Branch ordering in ref lists. Valid values: "name", "age".
+branch-sort=age
+
+## When set to "1", displays remote-tracking branches in summary and refs views.
+enable-remote-branches=0
+
+
+## ============================================================
+## SNAPSHOTS
+## MUST appear before scan-path: snapshot settings are inherited
+## by each repository at scan time, not after.
+## ============================================================
+
+## Space-separated list of enabled snapshot formats.
+## Valid values: tar tar.gz tar.bz2 tar.lz tar.xz tar.zst zip
+## Special value "all" enables every format.
+## Default: none (snapshots disabled).
+#snapshots=
+
+
+## ============================================================
+## DIFFS
+## ============================================================
+
+## When set to "1", shows side-by-side diffs by default instead of unified.
+side-by-side-diffs=0
+
+## Maximum number of files to consider when detecting renames.
+## -1 uses the git compile-time default.
+renamelimit=-1
+
+
+## ============================================================
+## BLOB / TREE VIEW
+## ============================================================
+
+## Maximum blob size to display as HTML, in KiB. 0 disables the limit.
+max-blob-size=2048
+
+## When set to "1", generates line-number links for plaintext blobs
+## in the tree view.
+enable-tree-linenumbers=1
+
+## When set to "1", allows the /plain handler to serve HTML-typed files
+## as text/html. When "0", such files are served as text/plain or
+## application/octet-stream.
+enable-html-serving=0
+
+
+## ============================================================
+## BLAME
+## ============================================================
+
+## When set to "1", enables the blame page and links to it from the tree view.
+enable-blame=1
+
+
+## ============================================================
+## STATISTICS
+## ============================================================
+
+## Default maximum statistics period.
+## Valid values: week month quarter year. Unset disables statistics.
 max-stats=year
 
-#
-# List of common mimetypes
-#
+## Number of items shown in atom feed views.
+max-atom-items=10
+
+
+## ============================================================
+## CLONE / HTTP
+## ============================================================
+
+## When set to "1", cgit acts as a dumb HTTP endpoint for git clones.
+enable-http-clone=0
+
+
+## ============================================================
+## PRIVACY
+## ============================================================
+
+## When set to "1", hides full author email addresses.
+noplainemail=0
+
+## When set to "1", uses server timezone for commit and tag timestamps.
+local-time=0
+
+
+## ============================================================
+## SECURITY / ACCESS CONTROL
+## ============================================================
+
+## Filename that must exist inside a repository for cgit to allow access.
+## Useful for emulating gitweb EXPORT_OK / STRICT_EXPORT.
+## Must be defined before scan-path.
+#strict-export=
+
+
+## ============================================================
+## SUBMODULES
+## ============================================================
+
+## Printf format string for submodule hyperlinks in directory listings.
+## Arguments: path, SHA1 of the submodule commit.
+#module-link=
+
+
+## ============================================================
+## MIMETYPES
+## ============================================================
+
+## Per-extension MIME type declarations used by the /plain handler.
+## Format: mimetype.<ext>=<mimetype>
+## Falls back to mimetype-file if no match is found.
+
+#mimetype-file=
 
 mimetype.gif=image/gif
 mimetype.htm=text/html
@@ -74,37 +340,61 @@ mimetype.ico=image/x-icon
 mimetype.jpg=image/jpeg
 mimetype.jpeg=image/jpeg
 mimetype.md=text/markdown
-mimetype.mng=video/x-mng
-mimetype.ora=image/openraster
-mimetype.pam=image/x-portable-arbitrarymap
-mimetype.pbm=image/x-portable-bitmap
 mimetype.pdf=application/pdf
-mimetype.pgm=image/x-portable-graymap
 mimetype.png=image/png
-mimetype.pnm=image/x-portable-anymap
-mimetype.ppm=image/x-portable-pixmap
 mimetype.svg=image/svg+xml
-mimetype.svgz=image/svg+xml
-mimetype.tga=image/x-tga
-mimetype.tif=image/tiff
-mimetype.tiff=image/tiff
+mimetype.txt=text/plain
 mimetype.webp=image/webp
-mimetype.xbm=image/x-xbitmap
-mimetype.xcf=image/x-xcf
-mimetype.xpm=image/x-xpixmap
+mimetype.xml=application/xml
 
-# Enable syntax highlighting
-source-filter=/usr/lib/cgit/filters/syntax-highlighting.py
-about-filter=/usr/lib/cgit/filters/html-converters/md2html
-commit-filter=/usr/lib/cgit/filters/commit-links.sh
-email-filter=lua:/usr/lib/cgit/filters/email-libravatar.lua
 
-# Include some more info about example.com on the index page
-root-readme=/var/www/htdocs/cgit/root-readme.md
+## ============================================================
+## VIRTUAL ROOT / URL REWRITING
+## ============================================================
 
-#
-# List of common readmes
-#
+## Root URL for all cgit links. When set, cgit generates "virtual" URLs
+## like /cgit/tree/README instead of ?r=cgit&p=tree&path=README.
+#virtual-root=
+
+
+## ============================================================
+## REPOSITORY DISCOVERY (scan-path)
+## ============================================================
+
+## Default git repository description file path (relative to each repo path).
+agefile=info/web/last-modified
+
+## When set to "1", allows per-repo git config to override cgit settings.
+## Keys: gitweb.owner → repo.owner, gitweb.category → repo.section,
+##       gitweb.description → repo.desc, gitweb.homepage → repo.homepage,
+##       cgit.* → repo.*
+## Must be defined before scan-path.
+enable-git-config=1
+
+## When set to "1", allow all filter settings to be overridden
+## in repository-specific cgitrc files.
+enable-filter-overrides=0
+
+## When set to "1", strips the ".git" suffix from repository URLs and names
+## found by scan-path. Must be defined before scan-path.
+remove-suffix=0
+
+## Number of path elements to use as a default section name when scan-path
+## discovers repositories. Negative values discard elements from the top.
+## Must be defined before scan-path.
+section-from-path=0
+
+## When set to "1", scan-path will descend into hidden directories (those
+## whose name starts with '.'). Must be defined before scan-path.
+scan-hidden-path=0
+
+## Path to a file listing subdirectories (relative to scan-path) to load
+## as git repositories. Must be defined before scan-path.
+project-list=/var/lib/git/projects.list
+
+## Default readme file(s) to look for in each repository's default branch.
+## May be specified multiple times; the first match is used.
+## Useful with scan-path.
 readme=:README.md
 readme=:readme.md
 readme=:README.mkd
@@ -134,15 +424,68 @@ readme=:install.txt
 readme=:INSTALL
 readme=:install
 
-# Snapshots — enabled archive formats for the download links.
-# MUST appear before scan-path: cgit initialises repo->snapshots from
-# ctx.cfg.snapshots at scan time; any value set after scan-path is ignored.
-snapshots=tar.gz tar.xz zip
+## Name of a config file to parse before continuing with the current file.
+## Supports macro expansion.
+#include=
 
-# Direct cgit to repository location managed by gitolite.
-# scan-path MUST be last: it triggers an immediate scan_tree() call that
-# inherits the snapshot (and other) settings in effect at that point.
-remove-suffix=0
-project-list=/var/lib/git/projects.list
-section-from-path=1
-scan-path=/var/lib/git/repositories
+## Current section name. All repositories defined after this directive
+## inherit this section. Unset by default.
+#section=
+
+## Robots meta-tag content.
+robots=index, nofollow
+
+## Path to scan for git repositories.
+## Triggers an immediate scan when parsed — must come LAST among settings
+## that affect repositories (snapshots, filters, enable-*, etc.).
+## Supports macro expansion.
+#scan-path=
+
+
+## ============================================================
+## EXPLICIT REPOSITORY LIST
+## (alternative to scan-path; may also be used alongside it)
+## ============================================================
+
+## Each repository block begins with repo.url and ends before the next
+## repo.url. All repo.* settings below are optional unless noted.
+
+## repo.url=        (required) Relative URL used to access the repository.
+## repo.path=       (required) Absolute path to the repository directory.
+## repo.name=       Display name. Default: <repo.url>.
+## repo.desc=       Repository description. Default: none.
+## repo.owner=      Repository owner. Default: none.
+## repo.homepage=   Repository homepage URL. Default: none.
+## repo.section=    Override the current section name. Default: none.
+## repo.defbranch=  Default branch. Default: HEAD target, or "master".
+## repo.clone-url=  Space-separated list of clone URLs. Default: none.
+## repo.readme=     Path or refspec:path to the about/readme file.
+## repo.snapshots=  Snapshot format mask (subset of global snapshots).
+## repo.snapshot-prefix= Prefix for snapshot filenames. Default: repo basename.
+## repo.max-stats=  Override global max-stats. Default: none.
+## repo.module-link= Submodule link format string. Default: <module-link>.
+## repo.module-link.<path>= Per-path submodule link. Default: none.
+## repo.enable-blame=          Override global enable-blame.
+## repo.enable-commit-graph=   Override global enable-commit-graph.
+## repo.enable-html-serving=   Override global enable-html-serving.
+## repo.enable-log-filecount=  Override global enable-log-filecount.
+## repo.enable-log-linecount=  Override global enable-log-linecount.
+## repo.enable-remote-branches= Override global enable-remote-branches.
+## repo.enable-subject-links=  Override global enable-subject-links.
+## repo.branch-sort=           Override global branch-sort.
+## repo.commit-sort=           Override global commit-sort.
+## repo.about-filter=          Override global about-filter (needs enable-filter-overrides=1).
+## repo.commit-filter=         Override global commit-filter (needs enable-filter-overrides=1).
+## repo.email-filter=          Override global email-filter (needs enable-filter-overrides=1).
+## repo.owner-filter=          Override global owner-filter (needs enable-filter-overrides=1).
+## repo.source-filter=         Override global source-filter (needs enable-filter-overrides=1).
+## repo.extra-head-content=    Extra HTML added to <head> for this repo. Default: none.
+## repo.logo=                  Override global logo. Default: <logo>.
+## repo.logo-link=             Override global logo-link. Default: <logo-link>.
+## repo.hide=      When "1", hides from index but still accessible. Default: "0".
+## repo.ignore=    When "1", hides from index and blocks direct access. Default: "0".
+
+#repo.url=example
+#repo.path=/var/lib/git/repositories/example.git
+#repo.desc=An example repository
+#repo.owner=admin
