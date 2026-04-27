@@ -26,33 +26,28 @@ cp /usr/local/share/cgitrc.template "$CONFIG"
 chown fcgiwrap:nginx "$CONFIG"
 chmod 0640 "$CONFIG"
 
-# ── Dynamic Runtime Config Injection (with logging) ──────────────────────────
+# ── Dynamic Runtime Config Injection (with Comment Support) ──────────────────
 
 echo "Initializing cgitrc with environment variables..."
 
-# 使用 env 获取变量，while read 处理流
 env | grep '^CGIT_' | while read -r line; do
-    # 提取变量名
     var_name=${line%%=*}
-
-    # 获取变量值 (POSIX eval 方式)
     eval var_value="\$$var_name"
 
-    # 如果值为空，打印跳过提示并继续
-    if [ -z "$var_value" ]; then
-        echo "  [SKIP] $var_name is empty, ignoring."
-        continue
-    fi
+    [ -z "$var_value" ] && continue
 
-    # 转换逻辑：CGIT_ROOT_TITLE -> root-title
+    # Transform: CGIT_ROOT_TITLE -> root-title
     config_key=$(echo "${var_name#CGIT_}" | tr '[:upper:]' '[:lower:]' | tr '_' '-')
 
-    # 执行替换并加入成功提示
-    # 注意：这里使用 printf 格式化输出，看起来更整齐
-    if sed -i "s|^${config_key}=.*|${config_key}=${var_value}|" "$CONFIG"; then
+    # Support both 'key=' and '#key='
+    # 1. Check if the key exists (commented or not)
+    if grep -iq "^#\?${config_key}=" "$CONFIG"; then
+        # 2. Replace the line: remove leading # if present, and update value
+        # Using a different delimiter (pipe |) in sed to avoid issues with URLs in values
+        sed -i "s|^#\?${config_key}=.*|${config_key}=${var_value}|" "$CONFIG"
         printf "  [APPLIED] %-25s -> %s\n" "$var_name" "$config_key"
     else
-        echo "  [ERROR] Failed to update $config_key"
+        echo "  [IGNORE] $config_key not found in $CONFIG template."
     fi
 done
 

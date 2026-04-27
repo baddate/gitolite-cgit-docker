@@ -72,7 +72,7 @@ cache-snapshot-ttl=5
 
 ## Directory used to store cgit cache entries.
 ## Supports macro expansion ($VARIABLE).
-# cache-root=/var/cache/cgit
+#cache-root=/var/cache/cgit
 
 
 ## ============================================================
@@ -135,10 +135,10 @@ logo=/cgit.png
 ## ============================================================
 
 ## Heading text on the repository index page.
-# root-title=Git Repository Browser
+#root-title=Git Repository Browser
 
 ## Subheading text on the repository index page.
-# root-desc=a fast webinterface for the git dscm
+#root-desc=a fast webinterface for the git dscm
 
 ## Content of a file included verbatim below the "about" link
 ## on the repository index page.
