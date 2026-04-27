@@ -1,16 +1,16 @@
-#!/usr/bin/env sh
+#!/bin/sh
 # post-receive: notify cgit to invalidate its repository list cache.
 #
-# Sends CGIT_INVALIDATE_SECRET to cgit's cache invalidation listener (TCP 9000).
+# Sends REPO_INVALIDATE_SECRET to cgit's cache invalidation listener (TCP 9000).
 # cgit deletes rc-* files and re-scans repositories on the next request,
 # making newly created repositories visible immediately.
 
 CGIT_HOST="${CGIT_HOST:-cgit}"
 CGIT_PORT="${CGIT_PORT:-9000}"
-SECRET="${CGIT_INVALIDATE_SECRET:-}"
+SECRET="${REPO_INVALIDATE_SECRET:-}"
 
 if [ -z "$SECRET" ]; then
-    echo "post-receive: CGIT_INVALIDATE_SECRET not set, skipping cache invalidation" >&2
+    echo "post-receive: REPO_INVALIDATE_SECRET not set, skipping cache invalidation" >&2
     exit 0
 fi
 
