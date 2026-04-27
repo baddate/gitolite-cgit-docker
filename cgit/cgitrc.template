@@ -439,7 +439,7 @@ robots=index, nofollow
 ## Triggers an immediate scan when parsed — must come LAST among settings
 ## that affect repositories (snapshots, filters, enable-*, etc.).
 ## Supports macro expansion.
-#scan-path=
+scan-path=/var/lib/git/repositories
 
 
 ## ============================================================
