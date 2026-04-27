@@ -53,6 +53,28 @@ done
 
 echo "Configuration injection complete."
 
+# ── Cache invalidation listener ───────────────────────────────────────────────
+# Listens on TCP 9000 (internal network only, not exposed in docker-compose).
+# gitolite's post-receive hook connects and sends a shared secret token;
+# if it matches CGIT_INVALIDATE_SECRET, the scanrc cache is wiped so newly
+# created repositories appear in cgit without a restart.
+#
+# Security notes:
+#   - Port 9000 is NOT exposed in docker-compose (no ports: mapping), so it
+#     is only reachable from containers on the same Docker network.
+#   - The secret prevents any container on git-net from triggering a flush;
+#     deleting cache files is low-risk but the check costs nothing.
+#   - socat forks per connection (fork) and exits after one command (EXEC).
+#
+if [ -n "${CGIT_INVALIDATE_SECRET:-}" ]; then
+    SECRET="$CGIT_INVALIDATE_SECRET"
+    socat TCP-LISTEN:9000,bind=0.0.0.0,fork,reuseaddr \
+        EXEC:"sh -c 'read token; [ \"\$token\" = \"$SECRET\" ] && find /run/cgit-cache -maxdepth 1 -name rc-* -delete'" &
+    echo "cache invalidation listener started on :9000"
+else
+    echo "CGIT_INVALIDATE_SECRET not set, cache invalidation listener disabled" >&2
+fi
+
 # ── fcgiwrap ──────────────────────────────────────────────────────────────────
 spawn-fcgi \
     -s /run/fcgiwrap/fcgiwrap.socket \
