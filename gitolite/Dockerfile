@@ -16,7 +16,14 @@ LABEL org.opencontainers.image.licenses="GPL-3.0"
 
 SHELL ["/bin/ash", "-euo", "pipefail", "-c"]
 
-# Pin git user/group to UID/GID 1000.
+# ── Users and groups ─────────────────────────────────────────────────────────
+# git(UID 1000, GID 1000): runs gitolite and sshd git sessions.
+# gitrepos(GID 2000): shared group for read access to repositories.
+#   - git is a member so new repo files inherit GID 2000
+#     (via setgid on repositories dir + core.sharedRepository=group)
+#   - cgit container's fcgiwrap joins this same GID to read repos
+#   - GID 2000 must match exactly in both containers (enforced by -g 2000)
+#
 # gitolite's apk post-install script pre-creates the git user/group with a
 # random ID, so delete in order (user first, then group) and recreate.
 # passwd -u unlocks the account — adduser -D sets the password to '!' which
@@ -26,11 +33,13 @@ RUN apk add --no-cache \
         git gitolite openssh perl tini su-exec && \
     deluser  git 2>/dev/null || true && \
     delgroup git 2>/dev/null || true && \
+    addgroup -g 2000 gitrepos && \
     addgroup -g 1000 git && \
     adduser  -D -u 1000 -G git -h /var/lib/git git && \
+    addgroup git gitrepos && \
     passwd   -u git && \
     mkdir -p /var/lib/git /etc/ssh && \
-    chown -R 1000:1000 /var/lib/git && \
+    chown -R 1000:2000 /var/lib/git && \
     chmod 750 /var/lib/git
 
 COPY sshd_config            /etc/ssh/sshd_config.default

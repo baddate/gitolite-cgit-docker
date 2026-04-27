@@ -2,30 +2,39 @@
 
 set -euo pipefail
 
-# ── runtime dirs ─────────────────────────────────────────
-mkdir -p /run/fcgiwrap  && chown fcgiwrap:nginx /run/fcgiwrap && chmod 0750 /run/fcgiwrap
-mkdir -p /run/nginx     && chown nginx:nginx    /run/nginx    && chmod 0755 /run/nginx
-mkdir -p /tmp/nginx     && chown nginx:nginx    /tmp/nginx
+# ── Runtime directory setup ───────────────────────────────────────────────────
+# All mkdir/chown/chmod in one place. Runs as root (container starts as root).
+# Permissions rationale:
+#   /run/fcgiwrap  — fcgiwrap Unix socket dir; nginx reads socket (g+rx via nginx group)
+#   /run/nginx     — nginx pid/lock files; owned by nginx
+#   /tmp/nginx     — nginx temp files; container has read-only rootfs, needs tmpfs
+#   /run/cgit-cache — cgit page cache; fcgiwrap writes, nginx has no need to write
+setup_runtime_dirs() {
+    mkdir -p /run/fcgiwrap   && chown fcgiwrap:nginx  /run/fcgiwrap   && chmod 0750 /run/fcgiwrap
+    mkdir -p /run/nginx      && chown nginx:nginx     /run/nginx      && chmod 0755 /run/nginx
+    mkdir -p /tmp/nginx      && chown nginx:nginx     /tmp/nginx      && chmod 0700 /tmp/nginx
+    mkdir -p /run/cgit-cache && chown fcgiwrap:nginx  /run/cgit-cache && chmod 0750 /run/cgit-cache
+}
+setup_runtime_dirs
 
-# ── cgitrc ───────────────────────────────────────────────
+# ── cgitrc ────────────────────────────────────────────────────────────────────
+# Generated at runtime into /run (tmpfs) so the image stays read-only.
+# Owned by fcgiwrap:nginx, mode 0640: fcgiwrap reads it, nginx has no need.
 CONFIG=/run/cgitrc
-mkdir -p $(dirname $CONFIG) /run/cgit-cache && \
-cp /usr/local/share/cgitrc.template "$CONFIG" && \
-chown fcgiwrap:nginx "$CONFIG" && \
-chown -R fcgiwrap:nginx /run/cgit-cache && \
-chmod 0644 "$CONFIG" && chmod 0755 /run/cgit-cache
+mkdir -p "$(dirname "$CONFIG")"
+cp /usr/local/share/cgitrc.template "$CONFIG"
+chown fcgiwrap:nginx "$CONFIG"
+chmod 0640 "$CONFIG"
 
 append_if_set() {
     key="$1"
     value="$2"
-
     [ -n "${value:-}" ] && printf '\n%s=%s\n' "$key" "$value" >> "$CONFIG"
 }
 
 append_bool() {
     key="$1"
     value="$2"
-
     case "${value:-}" in
         1|0|true|false|"") ;;
         *)
@@ -33,27 +42,24 @@ append_bool() {
             exit 1
             ;;
     esac
-
     [ -n "${value:-}" ] && printf '%s=%s\n' "$key" "$value" >> "$CONFIG"
 }
 
 append_if_set "clone-prefix" "$CGIT_CLONE_PREFIX"
 append_if_set "root-title"   "$CGIT_ROOT_TITLE"
 append_if_set "root-desc"    "$CGIT_DESC"
-append_if_set "snapshots" "$CGIT_SNAPSHOT"
+append_if_set "snapshots"    "$CGIT_SNAPSHOT"
 
 append_bool "enable-http-clone" "$ENABLE_HTTP_CLONE"
 
-
-
-# ── fcgiwrap ─────────────────────────────────────────────
+# ── fcgiwrap ──────────────────────────────────────────────────────────────────
 spawn-fcgi \
     -s /run/fcgiwrap/fcgiwrap.socket \
     -u fcgiwrap -g nginx -M 0660 \
     -f /usr/bin/fcgiwrap
 
-# wait for socket to be ready before starting nginx
-# avoids 502 on the first few requests after container start
+# Wait for socket to be ready before starting nginx.
+# Avoids 502 on the first few requests after container start.
 _timeout=50
 while [ ! -S /run/fcgiwrap/fcgiwrap.socket ]; do
     if [ "$_timeout" -le 0 ]; then
@@ -64,5 +70,5 @@ while [ ! -S /run/fcgiwrap/fcgiwrap.socket ]; do
     _timeout=$((_timeout - 1))
 done
 
-# ── nginx ─────────────────────────────────────────────────
+# ── nginx ─────────────────────────────────────────────────────────────────────
 exec nginx -g "daemon off;"
