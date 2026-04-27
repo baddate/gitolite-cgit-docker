@@ -13,15 +13,25 @@ fi
 
 # ── Volume ownership fix ───────────────────────────────────
 # Skipped after first run (stamp file) unless FORCE_CHOWN=1.
-# The image pins git to UID 1000 so this is normally a no-op.
+# Checks UID:GID — GID must be 2000 (gitrepos) so fcgiwrap in the
+# cgit container can read repositories via gitrepos group membership.
 _stamp=/var/lib/git/.gitolite/.permissions-fixed
-_owner="$(stat -c '%u' /var/lib/git 2>/dev/null || echo 0)"
-if [ "${FORCE_CHOWN:-}" = "1" ] || [ ! -f "$_stamp" ] || [ "$_owner" != "1000" ]; then
-    chown -R 1000:1000 /var/lib/git
+_owner="$(stat -c '%u:%g' /var/lib/git 2>/dev/null || echo 0:0)"
+if [ "${FORCE_CHOWN:-}" = "1" ] || [ ! -f "$_stamp" ] || [ "$_owner" != "1000:2000" ]; then
+    chown -R 1000:2000 /var/lib/git
     chmod 750 /var/lib/git
+    # setgid on repositories dir: new subdirs inherit gitrepos (GID 2000) as
+    # their group, so core.sharedRepository=group propagates correctly without
+    # needing --shared on every git init.
+    [ -d /var/lib/git/repositories ] && chmod g+s /var/lib/git/repositories
+    # One-time migration: make existing repo objects group-readable.
+    # core.sharedRepository=group only affects newly written files; existing
+    # objects need a manual fix on first run.
+    chmod -R g+rX /var/lib/git/repositories 2>/dev/null || true
+    find /var/lib/git/repositories -type d -exec chmod g+s {} + 2>/dev/null || true
     mkdir -p "$(dirname "$_stamp")"
     touch "$_stamp"
-    chown 1000:1000 "$_stamp"
+    chown 1000:2000 "$_stamp"
 fi
 
 # ── gitolite init (run as git user) ────────────────────────
@@ -31,6 +41,13 @@ if [ ! -f /var/lib/git/.ssh/authorized_keys ]; then
     su-exec git gitolite setup -pk "/tmp/${SSH_KEY_NAME}.pub"
     rm -f "/tmp/${SSH_KEY_NAME}.pub"
 fi
+
+# ── git global config ──────────────────────────────────────
+# Idempotent — set on every restart so the config is present
+# even if gitolite was initialised on a previous container run.
+# core.sharedRepository=group: new objects get g+r with group=gitrepos (GID 2000).
+# Written to /var/lib/git/.gitconfig (git HOME), read by git on every init.
+su-exec git git config --global core.sharedRepository group
 
 # ── gitolite config (run as git user) ──────────────────────
 # Idempotent — only copy default rc if one doesn't exist yet,

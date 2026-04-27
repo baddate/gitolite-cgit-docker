@@ -156,9 +156,14 @@ RUN apk add --no-cache \
         /var/lib/nginx/logs && \
     rm -rf /var/cache/apk/* /tmp/*
 
-RUN addgroup -g 1000 git && \
-    adduser -D -u 1000 -G git -h /var/lib/git -s /sbin/nologin git && \
-    addgroup fcgiwrap git && \
+# ── Groups only — no git user needed in this container ───────────────────────
+# gitrepos(GID 2000): shared read-access group for git repositories.
+#   Must match GID 2000 in the gitolite container (enforced by -g 2000).
+#   fcgiwrap joins gitrepos to read /var/lib/git/repositories (mounted :ro).
+#   No git user is created here — cgit is purely a read-only viewer.
+# nginx group: fcgiwrap joins so nginx can access the fcgiwrap socket.
+RUN addgroup -g 2000 gitrepos && \
+    addgroup fcgiwrap gitrepos && \
     addgroup fcgiwrap nginx
 
 # -----------------------------------------------------------------------------
