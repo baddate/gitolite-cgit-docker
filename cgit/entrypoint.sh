@@ -26,37 +26,37 @@ cp /usr/local/share/cgitrc.template "$CONFIG"
 chown fcgiwrap:nginx "$CONFIG"
 chmod 0640 "$CONFIG"
 
-append_if_set() {
-    key="$1"
-    value="$2"
-    [ -n "${value:-}" ] && printf '\n%s=%s\n' "$key" "$value" >> "$CONFIG"
-}
+# ── Dynamic Runtime Config Injection (with logging) ──────────────────────────
 
-append_bool() {
-    key="$1"
-    value="$2"
-    case "${value:-}" in
-        1|0|true|false|"") ;;
-        *)
-            echo "invalid boolean for $key: $value" >&2
-            exit 1
-            ;;
-    esac
-    [ -n "${value:-}" ] && printf '%s=%s\n' "$key" "$value" >> "$CONFIG"
-}
+echo "Initializing cgitrc with environment variables..."
 
-append_if_set "clone-prefix" "$CGIT_CLONE_PREFIX"
-append_if_set "root-title"   "$CGIT_ROOT_TITLE"
-append_if_set "root-desc"    "$CGIT_DESC"
-# snapshots= MUST be set before scan-path= in cgitrc (cgit reads repo list at
-# scan-path parse time and inherits ctx.cfg.snapshots at that moment).
-# The template already contains a default snapshots= line before scan-path;
-# if CGIT_SNAPSHOT is set we replace it in-place rather than appending.
-if [ -n "${CGIT_SNAPSHOT:-}" ]; then
-    sed -i "s|^snapshots=.*|snapshots=${CGIT_SNAPSHOT}|" "$CONFIG"
-fi
+# 使用 env 获取变量，while read 处理流
+env | grep '^CGIT_' | while read -r line; do
+    # 提取变量名
+    var_name=${line%%=*}
 
-append_bool "enable-http-clone" "$ENABLE_HTTP_CLONE"
+    # 获取变量值 (POSIX eval 方式)
+    eval var_value="\$$var_name"
+
+    # 如果值为空，打印跳过提示并继续
+    if [ -z "$var_value" ]; then
+        echo "  [SKIP] $var_name is empty, ignoring."
+        continue
+    fi
+
+    # 转换逻辑：CGIT_ROOT_TITLE -> root-title
+    config_key=$(echo "${var_name#CGIT_}" | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+
+    # 执行替换并加入成功提示
+    # 注意：这里使用 printf 格式化输出，看起来更整齐
+    if sed -i "s|^${config_key}=.*|${config_key}=${var_value}|" "$CONFIG"; then
+        printf "  [APPLIED] %-25s -> %s\n" "$var_name" "$config_key"
+    else
+        echo "  [ERROR] Failed to update $config_key"
+    fi
+done
+
+echo "Configuration injection complete."
 
 # ── fcgiwrap ──────────────────────────────────────────────────────────────────
 spawn-fcgi \
