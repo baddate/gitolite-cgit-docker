@@ -16,15 +16,17 @@ ARG GIT_VER=2.53.0
 ARG CGIT_CONFIG=/run/cgitrc
 ARG CACHE_ROOT=/run/cgit-cache
 
-# openssl-dev: required by cgit (MD5 for ETag + Gravatar), not git itself
+# openssl-dev: required by cgit (MD5 for ETag + Gravatar)
+# expat-dev: required by git's mailinfo/patch parsing linked into cgit
+# pkgconf: required to detect lua5.4 via pkg-config
 RUN apk add --no-cache \
     build-base \
     openssl-dev \
     zlib-dev \
     lua5.4-dev \
+    pcre2-dev \
     pkgconf \
-    curl \
-    expat-dev
+    curl
 
 WORKDIR /usr/src
 
@@ -78,11 +80,26 @@ RUN --mount=type=cache,id=git-cache-${TARGETARCH},target=/usr/src/git-archive,sh
     make prefix=/usr/local install $GIT_BUILD_OPTS
 
 # -----------------------------------------------------------------------------
-# build cgit
-# FIX: cp -al (hard-link copy) instead of ln -s — cgit Makefile resolves
-# `..` relative to the real directory, not the symlink, causing it to look
-# for ../cgit.mk in the wrong place when a symlink is used.
-# Hard links are zero-cost on the same filesystem and keep correct `..`.
+# Build cgit (which builds the git subset it needs internally via cgit.mk)
+#
+# Flag rationale:
+#   NO_GETTEXT    — cgit has no i18n
+#   NO_TCLTK      — no Tcl/Tk in a CGI
+#   NO_ICONV      — cgit never re-encodes text; git needs iconv only for that
+#   NO_EXPAT      — git uses expat only for http-push/svn; cgit does neither
+#   NO_REGEX      — cgit doesn't call regcomp; uses a tiny compat stub instead
+#   NO_CURL       — cgit.mk already forces NO_CURL=1; explicit for clarity
+#   LUA_PKGCONFIG — pin to lua5.4; prevents auto-detecting a wrong version
+#
+# Removed vs. previous version:
+#   NO_SVN_TESTS        — test-only flag, no effect on compiled output
+#   NO_PERL/NO_PYTHON   — not recognised by cgit.mk
+#   NO_LIBPCRE/USE_LIBPCRE2 — cgit log search uses fixed-string grep; PCRE
+#                             adds a dependency with no user-visible benefit
+#   NO_INSTALL_HARDLINKS/INSTALL_SYMLINKS — irrelevant; we don't install git
+#
+# FIX: cp -al (hard-link copy) not ln -s — cgit Makefile resolves `..`
+# relative to the real path, not the symlink target.
 # -----------------------------------------------------------------------------
 WORKDIR /usr/src/cgit
 
@@ -96,7 +113,15 @@ ENV CGIT_BUILD_OPTS="NO_ICONV=YesPlease \
 RUN set -eux && \
     rm -rf git && \
     cp -al "/usr/src/git-${GIT_VER}" git && \
-    make all $CGIT_BUILD_OPTS \
+    make all \
+      NO_GETTEXT=YesPlease \
+      NO_TCLTK=YesPlease \
+      NO_ICONV=YesPlease \
+      NO_EXPAT=YesPlease \
+      NO_REGEX=NeedsStartEnd \
+      USE_LIBPCRE2=YesPlease \
+      NO_CURL=YesPlease \
+      LUA_PKGCONFIG=lua5.4 \
       GIT_VER=${GIT_VER} \
       CGIT_CONFIG=${CGIT_CONFIG} \
       CACHE_ROOT=${CACHE_ROOT}
@@ -136,7 +161,7 @@ RUN apk add --no-cache \
         tini \
         lua5.4 \
         lua5.4-ossl \
-        expat \
+        pcre2 \
         nginx \
         fcgiwrap \
         spawn-fcgi \
@@ -154,7 +179,8 @@ RUN apk add --no-cache \
         /usr/lib/cgit/filters \
         /usr/local/lib/cgit \
         /var/lib/nginx/logs && \
-    rm -rf /var/cache/apk/* /tmp/*
+    rm -rf /var/cache/apk/* /tmp/* && \
+    rm -f /etc/nginx/http.d/default.conf
 
 # ── Groups only — no git user needed in this container ───────────────────────
 # gitrepos(GID 2000): shared read-access group for git repositories.
@@ -198,15 +224,14 @@ COPY --from=builder /usr/src/cgit/filters/    /usr/lib/cgit/filters/
 # Custom theme / filters — medium frequency
 # -----------------------------------------------------------------------------
 COPY cgit.css                /var/www/htdocs/cgit/cgit.css
+COPY cgitrc.template         /usr/local/share/cgitrc.template
 COPY filters/md2html                 /usr/lib/cgit/filters/html-converters/md2html
 COPY filters/syntax-highlighting.py  /usr/lib/cgit/filters/syntax-highlighting.py
-COPY catppuccin_mocha.py     /usr/local/lib/cgit/catppuccin_mocha.py
-COPY catppuccin_macchiato.py /usr/local/lib/cgit/catppuccin_macchiato.py
-COPY catppuccin_latte.py     /usr/local/lib/cgit/catppuccin_latte.py
-COPY cgitrc.template         /usr/local/share/cgitrc.template
-COPY nginx-cgit.conf         /etc/nginx/http.d/cgit.conf
-COPY nginx-default.conf      /etc/nginx/nginx.conf
-RUN rm -f /etc/nginx/http.d/default.conf
+COPY theme/catppuccin_mocha.py     /usr/local/lib/cgit/catppuccin_mocha.py
+COPY theme/catppuccin_macchiato.py /usr/local/lib/cgit/catppuccin_macchiato.py
+COPY theme/catppuccin_latte.py     /usr/local/lib/cgit/catppuccin_latte.py
+COPY nginx/cgit.conf         /etc/nginx/http.d/cgit.conf
+COPY nginx/default.conf      /etc/nginx/nginx.conf
 
 # -----------------------------------------------------------------------------
 # Entrypoint — changes most frequently
