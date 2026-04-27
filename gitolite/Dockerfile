@@ -51,6 +51,9 @@ RUN chmod +x \
         /usr/local/share/gitolite-local/triggers/auto-default-branch \
         /usr/local/share/gitolite-local/triggers/set-master-branch
 
+COPY hooks/post-receive     /usr/local/share/hooks/post-receive
+RUN chmod +x /usr/local/share/hooks/post-receive
+
 COPY entrypoint.sh          /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 

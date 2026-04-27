@@ -57,6 +57,17 @@ if [ ! -f /var/lib/git/.gitolite.rc ]; then
     chmod 640 /var/lib/git/.gitolite.rc
 fi
 
+# ── Install global post-receive hook ───────────────────────
+# Placed in ~/.gitolite/hooks/common/ so gitolite propagates it to every
+# repository (existing and future) on the next gitolite setup or push.
+# Running `gitolite setup` here ensures hooks are symlinked immediately.
+HOOK_DIR=/var/lib/git/.gitolite/hooks/common
+mkdir -p "$HOOK_DIR"
+cp /usr/local/share/hooks/post-receive "$HOOK_DIR/post-receive"
+chmod 0755 "$HOOK_DIR/post-receive"
+chown 1000:2000 "$HOOK_DIR/post-receive"
+su-exec git gitolite setup   # propagates hooks to all existing repos
+
 # ── SSH dir permissions (run as root, files owned by git) ──
 if [ -d /var/lib/git/.ssh ]; then
     chown -R 1000:1000 /var/lib/git/.ssh
