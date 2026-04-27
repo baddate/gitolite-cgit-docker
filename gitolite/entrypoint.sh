@@ -42,13 +42,6 @@ if [ ! -f /var/lib/git/.ssh/authorized_keys ]; then
     rm -f "/tmp/${SSH_KEY_NAME}.pub"
 fi
 
-# ── git global config ──────────────────────────────────────
-# Idempotent — set on every restart so the config is present
-# even if gitolite was initialised on a previous container run.
-# core.sharedRepository=group: new objects get g+r with group=gitrepos (GID 2000).
-# Written to /var/lib/git/.gitconfig (git HOME), read by git on every init.
-su-exec git git config --global core.sharedRepository group
-
 # ── gitolite config (run as git user) ──────────────────────
 # Idempotent — only copy default rc if one doesn't exist yet,
 # so user customisations are never overwritten on restart.
@@ -58,12 +51,10 @@ if [ ! -f /var/lib/git/.gitolite.rc ]; then
 fi
 
 # ── Install global post-receive hook ───────────────────────
-# Placed in ~/.gitolite/hooks/common/ so gitolite propagates it to every
+# Placed in $LOCAL_CODE specified int `gitolite.rc` so gitolite propagates it to every
 # repository (existing and future) on the next gitolite setup or push.
 # Running `gitolite setup` here ensures hooks are symlinked immediately.
-HOOK_DIR=/var/lib/git/.gitolite/hooks/common
-mkdir -p "$HOOK_DIR"
-cp /usr/local/share/hooks/post-receive "$HOOK_DIR/post-receive"
+HOOK_DIR=/usr/local/share/gitolite-local/hooks/common
 chmod 0755 "$HOOK_DIR/post-receive"
 chown 1000:2000 "$HOOK_DIR/post-receive"
 su-exec git gitolite setup   # propagates hooks to all existing repos
