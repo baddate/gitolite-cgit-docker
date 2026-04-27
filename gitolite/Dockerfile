@@ -53,6 +53,8 @@ RUN chmod +x \
         /usr/local/share/gitolite-local/triggers/set-master-branch \
         /usr/local/share/gitolite-local/hooks/common/post-receive
 
+RUN chown -R 1000:2000 /usr/local/share/gitolite-local
+
 COPY entrypoint.sh          /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 

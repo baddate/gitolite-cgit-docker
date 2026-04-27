@@ -45,9 +45,31 @@ fi
 # ── gitolite config (run as git user) ──────────────────────
 # Idempotent — only copy default rc if one doesn't exist yet,
 # so user customisations are never overwritten on restart.
-if [ ! -f /var/lib/git/.gitolite.rc ]; then
-    su-exec git cp /usr/local/share/gitolite.rc.default /var/lib/git/.gitolite.rc
-    chmod 640 /var/lib/git/.gitolite.rc
+GIT_HOME="/var/lib/git"
+
+# Ensure base dirs
+if [ ! -d "$GIT_HOME/.gitolite" ]; then
+    echo "[INIT] creating .gitolite/ directory"
+    mkdir -p "$GIT_HOME/.gitolite"
+fi
+
+# Init config if missing
+if [ ! -f "$GIT_HOME/.gitolite.rc" ]; then
+    echo "[INIT] creating gitolite.rc"
+    su-exec git cp /usr/local/share/gitolite.rc.default "$GIT_HOME/.gitolite.rc"
+    chown 1000:2000 "$GIT_HOME/.gitolite.rc"
+    chmod 640 "$GIT_HOME/.gitolite.rc"
+fi
+
+# Compile if needed
+if [ ! -d "$GIT_HOME/.gitolite/compiled" ]; then
+    echo "[INIT] compiling gitolite"
+    su-exec git env HOME="$GIT_HOME" gitolite compile
+fi
+
+# Detect LOCAL_CODE change
+if [ -d /usr/local/share/gitolite-local ]; then
+    su-exec git env HOME="$GIT_HOME" gitolite compile
 fi
 
 # ── Install global post-receive hook ───────────────────────
