@@ -30,14 +30,14 @@ chmod 0640 "$CONFIG"
 
 echo "Initializing cgitrc with environment variables..."
 
-env | grep '^CGIT_' | while read -r line; do
+env | grep '^GIT_' | while read -r line; do
     var_name=${line%%=*}
     eval var_value="\$$var_name"
 
     [ -z "$var_value" ] && continue
 
-    # Transform: CGIT_ROOT_TITLE -> root-title
-    config_key=$(echo "${var_name#CGIT_}" | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+    # Transform: GIT_ROOT_TITLE -> root-title
+    config_key=$(echo "${var_name#GIT_}" | tr '[:upper:]' '[:lower:]' | tr '_' '-')
 
     # Support both 'key=' and '#key='
     # 1. Check if the key exists (commented or not)
