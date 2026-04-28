@@ -20,7 +20,7 @@ if [ -z "$SECRET" ]; then
     exit 0
 fi
 
-if ! printf '%s\n' "$SECRET" | nc -w2 "$SOCAT_HOST" "$SOCAT_HOST" 2>/dev/null; then
+if ! printf '%s\n' "$SECRET" | nc -w2 "$SOCAT_HOST" "$SOCAT_PORT" 2>/dev/null; then
     # Non-fatal: cgit cache will expire on its own via cache-scanrc-ttl
     echo "post-receive: warning: could not reach cgit cache invalidation listener" >&2
 fi

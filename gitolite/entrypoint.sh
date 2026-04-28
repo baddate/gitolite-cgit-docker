@@ -57,6 +57,7 @@ fi
 # gitolite setup compiles config + symlinks hooks from LOCAL_CODE into every
 # existing repository. Runs on every start so hook changes take effect
 # without needing a manual push.
+rm -f /var/lib/git/.gitolite/hooks/common/post-receive
 su-exec git env HOME="$GIT_HOME" gitolite setup
 
 # ── SSH dir permissions (run as root, files owned by git) ──
