@@ -5,7 +5,11 @@
 # cgit deletes rc-* files and re-scans repositories on the next request,
 # making newly created repositories visible immediately.
 
-[ -f /tmp/gitolite.env ] && . /tmp/gitolite.env || echo "post-receive: warning: env file not found" >&2
+if [ -f /tmp/gitolite.env ]; then
+    . /tmp/gitolite.env
+else
+    echo "post-receive: warning: /tmp/gitolite.env not found" >&2
+fi
 
 SOCAT_HOST="${SOCAT_HOST:-cgit}"
 SOCAT_PORT="${SOCAT_PORT:-9000}"
@@ -16,7 +20,7 @@ if [ -z "$SECRET" ]; then
     exit 0
 fi
 
-if ! printf '%s\n' "$SECRET" | nc -w2 "$CGIT_HOST" "$CGIT_PORT" 2>/dev/null; then
+if ! printf '%s\n' "$SECRET" | nc -w2 "$SOCAT_HOST" "$SOCAT_HOST" 2>/dev/null; then
     # Non-fatal: cgit cache will expire on its own via cache-scanrc-ttl
     echo "post-receive: warning: could not reach cgit cache invalidation listener" >&2
 fi
