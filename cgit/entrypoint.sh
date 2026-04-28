@@ -69,7 +69,7 @@ echo "Configuration injection complete."
 if [ -n "${REPO_INVALIDATE_SECRET:-}" ]; then
     SECRET="$REPO_INVALIDATE_SECRET"
 
-    socat TCP-LISTEN:9000,bind=0.0.0.0,fork,reuseaddr \
+    socat -d -d TCP-LISTEN:9000,bind=0.0.0.0,fork,reuseaddr \
         EXEC:"/bin/sh -c '
             read token
             echo \"[cgit] received: \$token\" >&2
@@ -83,7 +83,7 @@ if [ -n "${REPO_INVALIDATE_SECRET:-}" ]; then
                 echo FAIL
             fi
         '" \
-        2>&1 &
+        2>&1 | stdbuf -oL sed 's/^/[SOCAT] /' &
 
     echo "[cgit] cache invalidation listener started on :9000"
 else
