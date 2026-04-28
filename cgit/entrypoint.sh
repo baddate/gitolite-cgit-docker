@@ -76,14 +76,14 @@ if [ -n "${REPO_INVALIDATE_SECRET:-}" ]; then
 
             if [ \"\$token\" = \"$SECRET\" ]; then
                 find /run/cgit-cache -maxdepth 1 -name rc-* -delete
-                echo \"[cgit] cache invalidated\" >&2
+                echo \"[cgit] Cache cleared successfully\" >&2
                 echo OK
             else
-                echo \"[cgit] invalid token\" >&2
+                echo \"[cgit] Denied: Invalid token\" >&2
                 echo FAIL
             fi
         '" \
-        2>&1 | stdbuf -oL sed 's/^/[SOCAT] /' &
+        2>&1 &
 
     echo "[cgit] cache invalidation listener started on :9000"
 else
