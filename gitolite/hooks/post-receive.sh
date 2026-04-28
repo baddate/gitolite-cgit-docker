@@ -5,6 +5,10 @@
 # cgit deletes rc-* files and re-scans repositories on the next request,
 # making newly created repositories visible immediately.
 
+set -a
+source /tmp/gitolite.env
+set +a
+
 CGIT_HOST="${CGIT_HOST:-cgit}"
 CGIT_PORT="${CGIT_PORT:-9000}"
 SECRET="${REPO_INVALIDATE_SECRET:-}"

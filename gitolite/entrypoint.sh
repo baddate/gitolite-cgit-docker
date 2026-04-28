@@ -88,6 +88,22 @@ if [ -d /var/lib/git/.ssh ]; then
     [ -f /var/lib/git/.ssh/authorized_keys ] && chmod 600 /var/lib/git/.ssh/authorized_keys
 fi
 
+# # ── REPO SECRET ──────────────────────────────────────────
+if [ -n "${REPO_INVALIDATE_SECRET:-}" ]; then
+    SECRET="$REPO_INVALIDATE_SECRET"
+
+    cat > /tmp/gitolite.env <<EOF
+REPO_INVALIDATE_SECRET=$SECRET
+EOF
+
+    chown git:git /tmp/gitolite.env
+    chmod 600 /tmp/gitolite.env
+
+    echo "[INFO] env file created"
+else
+    echo "[ERROR] REPO_INVALIDATE_SECRET not set, disabled" >&2
+fi
+
 # ── START sshd ─────────────────────────────────────────────
 # sshd must start as root so it can:
 #   1. bind port 22
