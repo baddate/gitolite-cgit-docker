@@ -47,7 +47,7 @@ fi
 # ── gitolite config ───────────────────────────────────────────────────────────
 # Only copy default rc on first run so user customisations are never
 # overwritten on restart.
-if [ ! -f "$GIT_HOME/.gitolite.rc" ]; then
+if [ "${FORCE_CHOWN:-}" = "1" ] || [ ! -f "$GIT_HOME/.gitolite.rc" ]; then
     su-exec git cp /usr/local/share/gitolite.rc.default "$GIT_HOME/.gitolite.rc"
     chown 1000:2000 "$GIT_HOME/.gitolite.rc"
     chmod 640 "$GIT_HOME/.gitolite.rc"
@@ -60,7 +60,7 @@ fi
 su-exec git env HOME="$GIT_HOME" gitolite setup
 
 # ── SSH dir permissions (run as root, files owned by git) ──
-if [ -d /var/lib/git/.ssh ]; then
+if [ "${FORCE_CHOWN:-}" = "1" ] || [ -d /var/lib/git/.ssh ]; then
     chown -R 1000:1000 /var/lib/git/.ssh
     chmod 700 /var/lib/git/.ssh
     [ -f /var/lib/git/.ssh/authorized_keys ] && chmod 600 /var/lib/git/.ssh/authorized_keys
@@ -70,7 +70,7 @@ fi
 # gitolite cleans the environment before running hooks, so the secret cannot
 # be inherited from sshd. Write it to a file that post-receive can source.
 if [ -n "${REPO_INVALIDATE_SECRET:-}" ]; then
-    printf 'REPO_INVALIDATE_SECRET=%s\SOCAT_HOST=%s\SOCAT_PORT=%s\n' \
+    printf 'REPO_INVALIDATE_SECRET=%s\nSOCAT_HOST=%s\nSOCAT_PORT=%s\n' \
         "$REPO_INVALIDATE_SECRET" \
         "${SOCAT_HOST:-cgit}" \
         "${SOCAT_PORT:-9000}" \
