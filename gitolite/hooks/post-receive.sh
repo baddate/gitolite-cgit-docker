@@ -5,12 +5,10 @@
 # cgit deletes rc-* files and re-scans repositories on the next request,
 # making newly created repositories visible immediately.
 
-set -a
-source /tmp/gitolite.env
-set +a
+[ -f /tmp/gitolite.env ] && . /tmp/gitolite.env || echo "post-receive: warning: env file not found" >&2
 
-CGIT_HOST="${CGIT_HOST:-cgit}"
-CGIT_PORT="${CGIT_PORT:-9000}"
+SOCAT_HOST="${SOCAT_HOST:-cgit}"
+SOCAT_PORT="${SOCAT_PORT:-9000}"
 SECRET="${REPO_INVALIDATE_SECRET:-}"
 
 if [ -z "$SECRET" ]; then

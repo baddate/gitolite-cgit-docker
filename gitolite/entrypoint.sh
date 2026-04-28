@@ -34,52 +34,30 @@ if [ "${FORCE_CHOWN:-}" = "1" ] || [ ! -f "$_stamp" ] || [ "$_owner" != "1000:20
     chown 1000:2000 "$_stamp"
 fi
 
-# ── gitolite init (run as git user) ────────────────────────
-if [ ! -f /var/lib/git/.ssh/authorized_keys ]; then
+# ── gitolite init ─────────────────────────────────────────────────────────────
+GIT_HOME=/var/lib/git
+
+if [ ! -f "$GIT_HOME/.ssh/authorized_keys" ]; then
     echo "$SSH_KEY" > "/tmp/${SSH_KEY_NAME}.pub"
     chmod 644 "/tmp/${SSH_KEY_NAME}.pub"
     su-exec git gitolite setup -pk "/tmp/${SSH_KEY_NAME}.pub"
     rm -f "/tmp/${SSH_KEY_NAME}.pub"
 fi
 
-# ── gitolite config (run as git user) ──────────────────────
-# Idempotent — only copy default rc if one doesn't exist yet,
-# so user customisations are never overwritten on restart.
-GIT_HOME="/var/lib/git"
-
-# Ensure base dirs
-if [ ! -d "$GIT_HOME/.gitolite" ]; then
-    echo "[INIT] creating .gitolite/ directory"
-    mkdir -p "$GIT_HOME/.gitolite"
-fi
-
-# Init config if missing
+# ── gitolite config ───────────────────────────────────────────────────────────
+# Only copy default rc on first run so user customisations are never
+# overwritten on restart.
 if [ ! -f "$GIT_HOME/.gitolite.rc" ]; then
-    echo "[INIT] creating gitolite.rc"
     su-exec git cp /usr/local/share/gitolite.rc.default "$GIT_HOME/.gitolite.rc"
     chown 1000:2000 "$GIT_HOME/.gitolite.rc"
     chmod 640 "$GIT_HOME/.gitolite.rc"
 fi
 
-# Compile if needed
-if [ ! -d "$GIT_HOME/.gitolite/compiled" ]; then
-    echo "[INIT] compiling gitolite"
-    su-exec git env HOME="$GIT_HOME" gitolite compile
-fi
-
-# Detect LOCAL_CODE change
-if [ -d /usr/local/share/gitolite-local ]; then
-    su-exec git env HOME="$GIT_HOME" gitolite compile
-fi
-
-# ── Install global post-receive hook ───────────────────────
-# Placed in $LOCAL_CODE specified int `gitolite.rc` so gitolite propagates it to every
-# repository (existing and future) on the next gitolite setup or push.
-# Running `gitolite setup` here ensures hooks are symlinked immediately.
-HOOK_DIR=/usr/local/share/gitolite-local/hooks/common
-chmod 0755 "$HOOK_DIR/post-receive"
-chown 1000:2000 "$HOOK_DIR/post-receive"
-su-exec git gitolite setup   # propagates hooks to all existing repos
+# ── Propagate hooks and LOCAL_CODE ───────────────────────────────────────────
+# gitolite setup compiles config + symlinks hooks from LOCAL_CODE into every
+# existing repository. Runs on every start so hook changes take effect
+# without needing a manual push.
+su-exec git env HOME="$GIT_HOME" gitolite setup
 
 # ── SSH dir permissions (run as root, files owned by git) ──
 if [ -d /var/lib/git/.ssh ]; then
@@ -88,21 +66,21 @@ if [ -d /var/lib/git/.ssh ]; then
     [ -f /var/lib/git/.ssh/authorized_keys ] && chmod 600 /var/lib/git/.ssh/authorized_keys
 fi
 
-# # ── REPO SECRET ──────────────────────────────────────────
+# ── Cache invalidation env file ───────────────────────────────────────────────
+# gitolite cleans the environment before running hooks, so the secret cannot
+# be inherited from sshd. Write it to a file that post-receive can source.
 if [ -n "${REPO_INVALIDATE_SECRET:-}" ]; then
-    SECRET="$REPO_INVALIDATE_SECRET"
-
-    cat > /tmp/gitolite.env <<EOF
-REPO_INVALIDATE_SECRET=$SECRET
-EOF
-
+    printf 'REPO_INVALIDATE_SECRET=%s\SOCAT_HOST=%s\SOCAT_PORT=%s\n' \
+        "$REPO_INVALIDATE_SECRET" \
+        "${SOCAT_HOST:-cgit}" \
+        "${SOCAT_PORT:-9000}" \
+        > /tmp/gitolite.env
     chown git:git /tmp/gitolite.env
     chmod 600 /tmp/gitolite.env
-
-    echo "[INFO] env file created"
 else
-    echo "[ERROR] REPO_INVALIDATE_SECRET not set, disabled" >&2
+    echo "[WARN] REPO_INVALIDATE_SECRET not set, cache invalidation disabled" >&2
 fi
+
 
 # ── START sshd ─────────────────────────────────────────────
 # sshd must start as root so it can:
