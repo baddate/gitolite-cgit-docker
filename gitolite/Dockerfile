@@ -45,8 +45,8 @@ RUN apk add --no-cache \
 COPY sshd_config            /etc/ssh/sshd_config.default
 COPY gitolite.rc            /usr/local/share/gitolite.rc.default
 
-COPY hooks/auto-default-branch.sh /usr/local/share/gitolite-local/triggers/auto-default-branch
-COPY hooks/set-master-branch.sh   /usr/local/share/gitolite-local/triggers/set-master-branch
+COPY triggers/auto-default-branch.sh /usr/local/share/gitolite-local/triggers/auto-default-branch
+COPY triggers/set-master-branch.sh   /usr/local/share/gitolite-local/triggers/set-master-branch
 COPY hooks/post-receive.sh        /usr/local/share/gitolite-local/hooks/common/post-receive
 
 RUN chmod +x \
