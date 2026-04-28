@@ -85,11 +85,21 @@ WORKDIR /usr/src/cgit
 ENV CFLAGS="-Os -fomit-frame-pointer -ffunction-sections -fdata-sections -flto=auto"
 ENV LDFLAGS="-Wl,--gc-sections -Wl,--as-needed -flto=auto"
 
-COPY cgit-scp-clone-url.patch /usr/src/cgit/
 RUN set -eux && \
     rm -rf git && \
-    cp -al "/usr/src/git-${GIT_VER}" git && \
-    patch -p1 < cgit-scp-clone-url.patch && \
+    cp -al "/usr/src/git-${GIT_VER}" git
+
+COPY patch/*.patch /usr/src/patch/
+RUN set -eux; \
+    if [ -d /usr/src/patch ]; then \
+        for f in $(ls /usr/src/patch/*.patch | sort); do \
+            echo "Applying $f..."; \
+            patch -p1 < "$f" || exit 1; \
+        done; \
+        rm -rf /usr/src/patch/; \
+    fi
+
+RUN set -eux && \
     make all \
       NO_GETTEXT=YesPlease \
       NO_TCLTK=YesPlease \

@@ -1,0 +1,114 @@
+--- cgit-1.3/cgit.h	2026-02-24 01:44:41.000000000 +0000
++++ cgit-scp-only/cgit.h	2026-04-28 05:55:29.051065767 +0000
+@@ -401,3 +401,9 @@
+ extern char *get_mimetype_for_filename(const char *filename);
+ 
+ #endif /* CGIT_H */
++
++/* Returns 1 if url is an SCP-style git remote ([user@]host:path) rather than
++ * a URL with a scheme (e.g. https://).  SCP-style addresses are not valid in
++ * HTML href attributes and must be rendered differently.
++ */
++extern int cgit_is_scp_url(const char *url);
+--- cgit-1.3/shared.c	2026-02-24 01:44:41.000000000 +0000
++++ cgit-scp-only/shared.c	2026-04-28 05:55:32.634065766 +0000
+@@ -581,3 +581,23 @@
+ 	fclose(file);
+ 	return NULL;
+ }
++
++int cgit_is_scp_url(const char *url)
++{
++	const char *p;
++
++	if (!url || !*url)
++		return 0;
++	for (p = url; *p; p++) {
++		if (*p == '/')
++			return 0;
++		if (*p == ':') {
++			if (p[1] == '/')
++				return 0;
++			if (p == url)
++				return 0;
++			return 1;
++		}
++	}
++	return 0;
++}
+--- cgit-1.3/ui-summary.c	2026-02-24 01:44:41.000000000 +0000
++++ cgit-scp-only/ui-summary.c	2026-04-28 05:55:43.853065763 +0000
+@@ -31,13 +31,19 @@
+ 		htmlf("<tr class='nohover'><th class='left' colspan='%d'>Clone</th></tr>\n", columns);
+ 	}
+ 
+-	htmlf("<tr><td colspan='%d'><a rel='vcs-git' href='", columns);
+-	html_url_path(url);
+-	html("' title='");
+-	html_attr(ctx.repo->name);
+-	html(" Git repository'>");
+-	html_txt(url);
+-	html("</a></td></tr>\n");
++	if (cgit_is_scp_url(url)) {
++		htmlf("<tr><td colspan='%d'><span class='clone-url scp-url'>", columns);
++		html_txt(url);
++		html("</span></td></tr>\n");
++	} else {
++		htmlf("<tr><td colspan='%d'><a rel='vcs-git' href='", columns);
++		html_url_path(url);
++		html("' title='");
++		html_attr(ctx.repo->name);
++		html(" Git repository'>");
++		html_txt(url);
++		html("</a></td></tr>\n");
++	}
+ }
+ 
+ void cgit_print_summary(void)
+--- cgit-1.3/ui-shared.c	2026-02-24 01:44:41.000000000 +0000
++++ cgit-scp-only/ui-shared.c	2026-04-28 05:56:02.338065758 +0000
+@@ -763,6 +763,9 @@
+ 
+ static void print_rel_vcs_link(const char *url)
+ {
++	/* SCP-style addresses are not valid in HTML link[href], skip them. */
++	if (cgit_is_scp_url(url))
++		return;
+ 	html("<link rel='vcs-git' href='");
+ 	html_attr(url);
+ 	html("' title='");
+@@ -920,8 +923,17 @@
+ 		strbuf_rtrim(url_list[i]);
+ 		if (url_list[i]->len == 0)
+ 			continue;
+-		if (suffix && *suffix)
+-			strbuf_addf(url_list[i], "/%s", suffix);
++		if (suffix && *suffix) {
++			/*
++			 * SCP-style prefixes (e.g. "git@host:") are joined
++			 * directly — no slash separator.
++			 * Normal URL prefixes (e.g. "https://host") get "/".
++			 */
++			if (cgit_is_scp_url(url_list[i]->buf))
++				strbuf_addf(url_list[i], "%s", suffix);
++			else
++				strbuf_addf(url_list[i], "/%s", suffix);
++		}
+ 		fn(url_list[i]->buf);
+ 	}
+ 
+--- cgit-1.3/cgit.css	2026-02-24 01:44:41.000000000 +0000
++++ cgit-scp-only/cgit.css	2026-04-28 05:56:07.801065757 +0000
+@@ -907,3 +907,12 @@
+ div#cgit table.ssdiff td.space div {
+ 	min-height: 3em;
+ }
++
++/* SCP-style clone URLs (e.g. git@host:repo.git) cannot be hyperlinks.
++ * Display them in a monospace style that signals "copy this text". */
++div#cgit span.clone-url.scp-url {
++	font-family: monospace;
++	user-select: all;
++	cursor: text;
++	color: #00008b;
++}
