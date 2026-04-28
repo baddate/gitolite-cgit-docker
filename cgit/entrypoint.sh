@@ -67,24 +67,29 @@ echo "Configuration injection complete."
 #   - socat forks per connection (fork) and exits after one command (EXEC).
 #
 if [ -n "${REPO_INVALIDATE_SECRET:-}" ]; then
-    SECRET="$REPO_INVALIDATE_SECRET"
-    socat -d TCP-LISTEN:9000,bind=0.0.0.0,fork,reuseaddr \
-        EXEC:"/bin/sh -c '
-            read token
-            echo \"[cgit] received token\" >&2
-            if [ \"\$token\" = \"$SECRET\" ]; then
-                find /run/cgit-cache -maxdepth 1 -name rc-* -delete
-                echo \"[cgit] cache cleared\" >&2
-                echo OK
-            else
-                echo \"[cgit] denied: invalid token\" >&2
-                echo FAIL
-            fi
-        '",nofork \
-        2>&1 &
-    echo "[cgit] cache invalidation listener started on :9000"
+    cat <<EOF > /usr/local/bin/cgit-cleaner.sh
+#!/bin/sh
+exec > /proc/1/fd/2 2>&1
+
+read -t 2 -r token
+if [ "\$token" = "$REPO_INVALIDATE_SECRET" ]; then
+    find /run/cgit-cache -maxdepth 1 -name "rc-*" -delete
+    echo "[cgit-cleaner] SUCCESS: Cache cleared."
+    echo "OK" >&1
 else
-    echo "[cgit] REPO_INVALIDATE_SECRET not set, disabled" >&2
+    echo "[cgit-cleaner] FAILED: Invalid token."
+    echo "FAIL" >&1
+fi
+EOF
+    chmod +x /usr/local/bin/cgit-cleaner.sh
+
+    socat -u -d TCP-LISTEN:9000,bind=0.0.0.0,fork,reuseaddr \
+        EXEC:"/usr/local/bin/cgit-cleaner.sh" \
+        2>/proc/1/fd/2 &
+
+    echo "[cgit-cleaner] cache invalidation listener started on :9000"
+else
+    echo "[cgit-cleaner] REPO_INVALIDATE_SECRET not set, disabled" >&2
 fi
 
 # ── fcgiwrap ──────────────────────────────────────────────────────────────────
