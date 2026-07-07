@@ -46,7 +46,8 @@ services:
       - git-data:/var/lib/git:ro # read-only mount
 
     depends_on:
-      - gitolite
+      gitolite:
+        condition: service_healthy
 
     networks:
       - git-net

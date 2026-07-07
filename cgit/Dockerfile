@@ -219,4 +219,9 @@ RUN chmod 0755 /var/www/htdocs/cgit/cgit && \
 
 EXPOSE 80
 
+# Probe the web UI through nginx+fcgiwrap. busybox wget needs no writable FS
+# (output to /dev/null), so this works under the read-only rootfs.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD wget -q -O /dev/null http://127.0.0.1/ || exit 1
+
 ENTRYPOINT ["/sbin/tini", "--", "/entrypoint.sh"]

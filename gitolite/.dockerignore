@@ -1,0 +1,4 @@
+# Build context for the gitolite image is ./gitolite (see .github/workflows/gitolite.yml).
+
+# macOS metadata
+.DS_Store

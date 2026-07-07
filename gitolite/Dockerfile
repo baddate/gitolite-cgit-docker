@@ -62,4 +62,8 @@ VOLUME ["/var/lib/git", "/etc/ssh"]
 
 EXPOSE 22
 
+# sshd has no built-in probe; verify the daemon process is alive.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD pgrep -x sshd >/dev/null 2>&1 || exit 1
+
 ENTRYPOINT ["/sbin/tini", "--", "/entrypoint.sh"]

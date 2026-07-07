@@ -1,0 +1,8 @@
+# Build context for the cgit image is ./cgit (see .github/workflows/cgit.yml).
+# Only files actually COPYed by cgit/Dockerfile need to reach the daemon.
+
+# macOS metadata
+.DS_Store
+
+# Unused CSS variant — only cgit.css is copied into the image at runtime.
+cgit.github.css
