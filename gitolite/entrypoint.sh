@@ -1,5 +1,4 @@
 #!/usr/bin/env sh
-set -euo pipefail
 
 # ── SSH host config (root needed: writes to /etc/ssh) ──────
 if [ ! -f /etc/ssh/sshd_config ]; then
