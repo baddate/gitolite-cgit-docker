@@ -1,7 +1,5 @@
 #!/usr/bin/env sh
 
-set -euo pipefail
-
 # ── Runtime directory setup ───────────────────────────────────────────────────
 # All mkdir/chown/chmod in one place. Runs as root (container starts as root).
 # Permissions rationale:
@@ -67,7 +65,7 @@ echo "Configuration injection complete."
 #   - socat forks per connection (fork) and exits after one command (EXEC).
 #
 if [ -n "${REPO_INVALIDATE_SECRET:-}" ]; then
-    cat <<EOF > /usr/local/bin/cgit-cleaner.sh
+    cat <<EOF > /run/cgit-cleaner.sh
 #!/bin/sh
 exec > /proc/1/fd/2 2>&1
 
@@ -81,10 +79,10 @@ else
     echo "FAIL" >&1
 fi
 EOF
-    chmod +x /usr/local/bin/cgit-cleaner.sh
+    chmod +x /run/cgit-cleaner.sh
 
     socat -u -d TCP-LISTEN:9000,bind=0.0.0.0,fork,reuseaddr \
-        EXEC:"/usr/local/bin/cgit-cleaner.sh" \
+        EXEC:"/run/cgit-cleaner.sh" \
         2>/proc/1/fd/2 &
 
     echo "[cgit-cleaner] cache invalidation listener started on :9000"
